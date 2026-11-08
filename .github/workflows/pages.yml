@@ -1,0 +1,52 @@
+# Publica la landing 3D (landing-3d) en GitHub Pages en cada push a main.
+# Solo copia lo que la web necesita: nada de pruebas, scripts ni capturas.
+name: Publicar landing en GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "landing-3d/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preparar el sitio
+        run: |
+          mkdir -p _site/assets
+          cd landing-3d
+          cp -r index.html css src vendor ../_site/
+          cp -r assets/models ../_site/assets/
+          cp assets/poster-*.webp ../_site/assets/
+          touch ../_site/.nojekyll
+          du -sh ../_site
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
