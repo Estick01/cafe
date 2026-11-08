@@ -1,0 +1,344 @@
+/*
+ * Despues de la historia: ficha de cata, reserva (demostracion) y pie.
+ */
+.datos { scroll-margin-top: 112px; }
+
+.ficha,
+.reservar {
+  position: relative;
+  padding: clamp(88px, 12vw, 152px) var(--gutter) 0;
+}
+
+.ficha {
+  background:
+    radial-gradient(min(110vw, 70rem) 34rem at 50% 62%, rgba(122, 68, 38, 0.2), transparent 70%),
+    var(--negro);
+}
+
+.seccion-cabeza {
+  max-width: 40rem;
+  margin: 0 auto clamp(40px, 6vw, 64px);
+  text-align: center;
+}
+
+.sobretitulo { margin-bottom: 18px; color: var(--acento); }
+
+.seccion-cabeza h2 {
+  font-size: clamp(2.5rem, 1.5rem + 4.4vw, 4.75rem);
+  line-height: 1;
+}
+
+.seccion-cabeza h2 em { color: var(--acento-claro); }
+
+.seccion-entrada {
+  margin-top: 18px;
+  color: var(--crema-suave);
+  font-size: 1rem;
+}
+
+/* ---------- Ficha de cata ---------- */
+
+.ficha-tarjeta {
+  display: grid;
+  gap: 28px;
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 24px 20px 26px;
+  border-radius: 28px;
+}
+
+.ficha-grafico { margin: 0; text-align: center; }
+
+.radar {
+  width: min(100%, 360px);
+  height: auto;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.radar-rejilla polygon,
+.radar-rejilla path {
+  fill: none;
+  stroke: rgba(243, 234, 217, 0.12);
+  stroke-width: 0.75;
+}
+
+.radar-rejilla polygon:last-of-type { stroke: rgba(243, 234, 217, 0.22); }
+
+.radar-area {
+  fill: rgba(201, 147, 95, 0.2);
+  stroke: var(--acento);
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+  transform-origin: 120px 120px;
+  transition: transform 1.2s var(--curva), opacity 1.2s var(--curva);
+}
+
+.radar-puntos circle { fill: var(--acento-claro); transition: opacity 0.6s 0.8s; }
+
+.radar-etiquetas text {
+  fill: var(--crema-suave);
+  font: 500 8.5px var(--sans);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.puntaje {
+  display: grid;
+  gap: 4px;
+  margin-top: 18px;
+}
+
+.puntaje-valor {
+  font: 400 clamp(3rem, 2.2rem + 3vw, 4.25rem)/1 var(--serif);
+  font-variant-numeric: lining-nums;
+}
+
+.puntaje-etiqueta {
+  color: var(--crema-suave);
+  font: 500 0.6875rem/1.4 var(--sans);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.ficha-detalle { display: grid; gap: 28px; align-content: start; }
+
+.atributos { display: grid; gap: 14px; }
+
+.atributos li {
+  display: grid;
+  grid-template-columns: 8.75rem 1fr 2.5rem;
+  align-items: center;
+  gap: 14px;
+  font-size: 0.875rem;
+}
+
+.atributo-nombre { color: var(--crema); }
+
+.atributo-barra {
+  position: relative;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(243, 234, 217, 0.12);
+}
+
+.atributo-barra::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--caoba), var(--acento-claro));
+  transform: scaleX(var(--valor));
+  transform-origin: left;
+  transition: transform 1.1s var(--curva);
+}
+
+.atributos li:nth-child(2) .atributo-barra::after { transition-delay: 0.06s; }
+.atributos li:nth-child(3) .atributo-barra::after { transition-delay: 0.12s; }
+.atributos li:nth-child(4) .atributo-barra::after { transition-delay: 0.18s; }
+.atributos li:nth-child(5) .atributo-barra::after { transition-delay: 0.24s; }
+.atributos li:nth-child(6) .atributo-barra::after { transition-delay: 0.3s; }
+
+.atributo-valor {
+  color: var(--crema);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Revelado al entrar en pantalla (solo con JS; sin JS se ve completo). */
+.js .ficha-tarjeta:not(.revelado) .atributo-barra::after { transform: scaleX(0); }
+.js .ficha-tarjeta:not(.revelado) .radar-area { transform: scale(0.3); opacity: 0; }
+.js .ficha-tarjeta:not(.revelado) .radar-puntos circle { opacity: 0; }
+
+.notas {
+  padding-top: 22px;
+  border-top: 1px solid var(--linea);
+}
+
+.notas-titulo { margin-bottom: 10px; color: var(--acento); }
+
+.notas-lista { color: var(--crema-suave); font-size: 0.9375rem; }
+
+.notas-lista em {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--crema);
+  font: italic 400 clamp(1.5rem, 1.2rem + 1vw, 1.875rem)/1.15 var(--serif);
+}
+
+.datos {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px 16px;
+  margin: 0;
+  padding-top: 22px;
+  border-top: 1px solid var(--linea);
+}
+
+.datos dt { margin-bottom: 4px; color: var(--crema-suave); }
+.datos dd { margin: 0; font: 400 1.25rem/1.25 var(--serif); }
+
+.ficha-nota { color: var(--crema-tenue); font-size: 0.75rem; line-height: 1.5; }
+
+.ficha-accion {
+  display: flex;
+  justify-content: center;
+  padding: clamp(40px, 6vw, 64px) 0 0;
+}
+
+/* Boton de vidrio: la llamada principal. */
+.boton-vidrio {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 56px;
+  padding: 0 30px 0 34px;
+  border-radius: 999px;
+  color: var(--crema);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: background-color 0.3s, transform 0.3s var(--curva);
+}
+
+.boton-vidrio::after {
+  content: "";
+  position: static;
+  z-index: auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--acento);
+  box-shadow: 0 0 0 4px rgba(201, 147, 95, 0.18);
+}
+
+.boton-vidrio:hover { --vidrio-tinte: rgba(48, 36, 28, 0.55); transform: translateY(-1px); }
+
+/* ---------- Reserva (demostracion) ---------- */
+
+.reservar {
+  padding-bottom: clamp(88px, 12vw, 152px);
+  background: var(--negro);
+}
+
+.reserva {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 22px 20px 24px;
+  border-radius: 28px;
+}
+
+.reserva-demo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 22px;
+  color: var(--crema-suave);
+  font-size: 0.8125rem;
+}
+
+.insignia {
+  padding: 4px 10px;
+  border: 1px solid rgba(201, 147, 95, 0.55);
+  border-radius: 999px;
+  color: var(--acento-claro);
+  font: 500 0.625rem/1.4 var(--sans);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.campos { display: grid; gap: 16px; }
+
+.campo { display: grid; gap: 8px; }
+
+.campo > span {
+  color: var(--crema-suave);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.campo input,
+.campo select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--crema);
+  font-size: 1rem;
+  color-scheme: dark;
+  transition: border-color 0.2s;
+}
+
+.campo input::placeholder { color: #9b8f7e; }
+.campo input:focus-visible,
+.campo select:focus-visible { border-color: var(--acento); outline-offset: 2px; }
+
+.boton-solido {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 22px;
+  padding: 0 30px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--crema);
+  color: var(--negro);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.boton-solido:hover { background: var(--acento-claro); }
+
+.reserva-estado { margin-top: 14px; color: var(--crema-suave); font-size: 0.875rem; text-align: center; }
+.reserva-estado:empty { display: none; }
+
+/* ---------- Pie ---------- */
+
+.pie {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 40px var(--gutter) max(40px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--linea);
+  color: var(--crema-tenue);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+.pie p { max-width: 38rem; }
+
+/* ---------- Pantallas medianas y anchas ---------- */
+
+@media (min-width: 720px) {
+  .atributos li { grid-template-columns: 10rem 1fr 2.75rem; }
+  .ficha-tarjeta { padding: 40px; border-radius: 32px; }
+  .reserva { padding: 32px 36px 36px; border-radius: 32px; }
+  .campos { grid-template-columns: 1.4fr 1fr 7rem; }
+  .boton-solido { width: auto; }
+  .datos { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (min-width: 1000px) {
+  .ficha-tarjeta {
+    grid-template-columns: minmax(300px, 0.9fr) 1.1fr;
+    gap: 56px;
+    align-items: center;
+    padding: 56px;
+  }
+  .ficha-grafico { padding-right: 56px; border-right: 1px solid var(--linea); }
+  .datos { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1200px) {
+  .datos { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atributo-barra::after, .radar-area, .radar-puntos circle, .boton-vidrio { transition: none; }
+}

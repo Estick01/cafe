@@ -1,0 +1,6 @@
+/tools/blender-mcp/
+/tools/blender-mcp-venv/
+/production/fluid-cache/
+/production/frames/
+*.blend1
+__pycache__/

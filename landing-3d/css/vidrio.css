@@ -1,0 +1,106 @@
+/*
+ * Vidrio liquido: panel translucido con desenfoque y saturacion del fondo, borde especular,
+ * aro interior de luz, sombra suave y tinte oscuro que se adapta a lo que pasa por detras.
+ *
+ * Rendimiento: solo .vidrio usa backdrop-filter y, en la historia, hay como mucho tres capas vivas
+ * a la vez (pildora de navegacion, riel de etapas y la tarjeta del capitulo visible; las ocultas
+ * pasan a visibility: hidden). En pantallas tactiles o estrechas el radio baja a la mitad.
+ * Los paneles sobre fondo quieto (ficha, formulario) usan .vidrio-solido, sin backdrop-filter.
+ */
+:root {
+  --vidrio-tinte: rgba(24, 19, 16, 0.46);
+  --vidrio-blur: 22px;
+  --vidrio-sat: 165%;
+  --vidrio-borde: linear-gradient(140deg,
+    rgba(255, 248, 236, 0.46) 0%,
+    rgba(255, 248, 236, 0.08) 28%,
+    rgba(255, 248, 236, 0) 52%,
+    rgba(255, 248, 236, 0.06) 74%,
+    rgba(255, 248, 236, 0.24) 100%);
+  --vidrio-aro: inset 0 1px 0 rgba(255, 250, 240, 0.16), inset 0 -1px 0 rgba(0, 0, 0, 0.28);
+  --vidrio-sombra: 0 18px 50px -18px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+@media (pointer: coarse), (max-width: 760px) {
+  :root {
+    --vidrio-blur: 12px;
+    --vidrio-sat: 140%;
+  }
+}
+
+.vidrio,
+.vidrio-solido {
+  position: relative;
+  isolation: isolate;
+  box-shadow: var(--vidrio-aro), var(--vidrio-sombra);
+}
+
+.vidrio {
+  background: var(--vidrio-tinte);
+  -webkit-backdrop-filter: blur(var(--vidrio-blur)) saturate(var(--vidrio-sat));
+  backdrop-filter: blur(var(--vidrio-blur)) saturate(var(--vidrio-sat));
+}
+
+/* Paneles sobre fondo quieto: mismo lenguaje, sin coste de composicion. */
+.vidrio-solido {
+  background:
+    linear-gradient(160deg, rgba(255, 246, 232, 0.07), rgba(255, 246, 232, 0.015) 45%, rgba(0, 0, 0, 0.12)),
+    rgba(26, 21, 18, 0.72);
+}
+
+/* Borde especular: un trazo de 1 px con degradado, recortado con mascara. */
+.vidrio::before,
+.vidrio-solido::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  padding: 1px;
+  border-radius: inherit;
+  background: var(--vidrio-borde);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+
+/* Brillo superior muy tenue, como la luz que entra por el canto del vidrio. */
+.vidrio::after,
+.vidrio-solido::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(120% 70% at 18% -20%, rgba(255, 248, 236, 0.11), transparent 62%);
+  pointer-events: none;
+}
+
+/* Refraccion (Chromium, puntero fino): el fondo se deforma levemente a traves del vidrio. */
+.refraccion .vidrio--refracta {
+  -webkit-backdrop-filter: url(#vidrio-refraccion) blur(16px) saturate(var(--vidrio-sat));
+  backdrop-filter: url(#vidrio-refraccion) blur(16px) saturate(var(--vidrio-sat));
+}
+
+/* Sin backdrop-filter: panel esmerilado solido. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .vidrio { background: rgba(26, 21, 18, 0.94); }
+}
+
+/* Transparencia reducida: paneles opacos, sin desenfoque ni refraccion. */
+@media (prefers-reduced-transparency: reduce) {
+  .vidrio,
+  .refraccion .vidrio--refracta {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgb(26, 21, 18);
+  }
+  .vidrio-solido { background: rgb(26, 21, 18); }
+  .vidrio::after, .vidrio-solido::after { display: none; }
+}
+
+/* Alto contraste forzado: el sistema pinta los bordes; quitamos adornos. */
+@media (forced-colors: active) {
+  .vidrio, .vidrio-solido { border: 1px solid CanvasText; }
+  .vidrio::before, .vidrio::after, .vidrio-solido::before, .vidrio-solido::after { display: none; }
+}

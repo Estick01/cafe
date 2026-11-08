@@ -1,0 +1,22 @@
+# Dependencias y entornos
+node_modules/
+landing-3d/tools/
+*.venv/
+__pycache__/
+*.pyc
+
+# Caches, simulaciones y referencias de terceros (no se publican)
+landing-3d/production/
+
+# Salidas generadas: capturas de control, bakes y renders
+landing-3d/assets/_checks/
+blender/export_web/_bakes/
+blender/renders/
+
+# Copias automaticas de Blender y registros
+*.blend1
+*.log
+
+# Sistema
+.DS_Store
+Thumbs.db

@@ -1,0 +1,472 @@
+/*
+ * La historia: lienzo 3D a pantalla completa, tarjetas de capitulo en vidrio, riel de etapas e
+ * indicaciones. La taza es la protagonista: en columna ocupa la franja superior (framing.js,
+ * 72 px + 62 % del alto) y el texto vive debajo; en horizontal la taza va al 60 % y el texto a
+ * la izquierda.
+ */
+
+/* ---------- Forma estatica: sin JS, movimiento reducido o fallo de carga ---------- */
+
+.medio {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  max-height: 70vh;
+  width: 100%;
+  overflow: hidden;
+  background: var(--marmol);
+}
+
+.poster { width: 100%; height: 100%; object-fit: cover; }
+.poster.roto { visibility: hidden; }
+
+.lienzo,
+.velo,
+.puntos,
+.indicacion,
+.indicador { display: none; }
+
+.capitulos {
+  display: grid;
+  gap: 16px;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 40px var(--gutter) 72px;
+}
+
+.capitulo {
+  padding: 22px 22px 24px;
+  border-radius: 24px;
+}
+
+/* Fuera del scrub, las tarjetas no tienen nada en movimiento detras: sin backdrop-filter. */
+html:not(.scrub) .capitulo {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background:
+    linear-gradient(160deg, rgba(255, 246, 232, 0.07), rgba(255, 246, 232, 0.015) 45%, rgba(0, 0, 0, 0.12)),
+    rgba(26, 21, 18, 0.72);
+}
+
+.etapa {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+  color: var(--crema-suave);
+}
+
+.etapa-num {
+  color: var(--acento);
+  font-variant-numeric: tabular-nums;
+}
+
+.etapa-num::after {
+  content: "";
+  display: inline-block;
+  width: 22px;
+  height: 1px;
+  margin-left: 12px;
+  vertical-align: middle;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.capitulo h1,
+.capitulo h2 {
+  margin-bottom: 12px;
+  font-size: clamp(1.75rem, 1.25rem + 2.2vw, 2.75rem);
+}
+
+.capitulo-texto {
+  max-width: 34ch;
+  color: var(--crema-suave);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+/* Hilo de avance dentro del capitulo: se llena mientras dura la etapa. */
+.capitulo-hilo {
+  position: absolute;
+  inset: auto 22px 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--acento), var(--acento-claro));
+  transform: scaleX(var(--avance, 0));
+  transform-origin: left;
+  opacity: 0.85;
+}
+
+html:not(.scrub) .capitulo-hilo { display: none; }
+
+.aviso {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin: 24px var(--gutter) 0;
+  padding: 12px 16px;
+  border: 1px solid rgba(201, 147, 95, 0.5);
+  border-radius: 18px;
+  background: var(--marmol-claro);
+  font-size: 0.9375rem;
+}
+
+.aviso[hidden] { display: none; }
+
+.aviso-boton {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--crema);
+  cursor: pointer;
+}
+
+.aviso-boton:hover { background: rgba(243, 234, 217, 0.08); }
+
+/* ---------- Forma con scroll ---------- */
+
+.scrub .historia {
+  position: relative;
+  height: var(--altura-historia, 700vh);
+}
+
+.scrub .escenario {
+  position: sticky;
+  top: 0;
+  height: var(--altura-pantalla);
+  overflow: hidden;
+  background: var(--negro);
+}
+
+.scrub .medio {
+  position: absolute;
+  inset: 0;
+  aspect-ratio: auto;
+  max-height: none;
+  background: none;
+}
+
+.scrub .poster { position: absolute; inset: 0; object-fit: cover; }
+.scrub.frame-pintado .poster { display: none; }
+
+.scrub .lienzo {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Velo: solo donde vive el texto, para que el vidrio siempre lea sobre oscuro. */
+.scrub .velo {
+  display: block;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to top,
+    rgba(var(--velo), 0.92) 0,
+    rgba(var(--velo), 0.7) 22%,
+    rgba(var(--velo), 0) 40%);
+}
+
+.scrub .capitulos {
+  display: block;
+  position: absolute;
+  inset: auto var(--gutter) calc(52px + env(safe-area-inset-bottom));
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+.scrub .capitulo {
+  --centrado: 0px;
+  --desplazamiento: 0px;
+  --vidrio-tinte: rgba(18, 14, 12, 0.62);
+  position: absolute;
+  inset: auto 0 0;
+  max-width: 34rem;
+  margin-inline: auto;
+  padding: 18px 20px 20px;
+  border-radius: 22px;
+  transform: translateY(calc(var(--centrado) + var(--desplazamiento)));
+  will-change: opacity, transform;
+}
+
+.scrub .capitulo:not(:first-child) { opacity: 0; visibility: hidden; }
+
+/* Riel de etapas: pildora vertical de vidrio con un punto por capitulo. */
+.scrub .puntos {
+  display: block;
+  position: absolute;
+  right: 8px;
+  top: calc(var(--alto-cabecera) + var(--altura-pantalla) * 0.31);
+  z-index: 5;
+  padding: 6px 2px;
+  border-radius: 999px;
+  transform: translateY(-50%);
+}
+
+.puntos ol { position: relative; display: flex; flex-direction: column; gap: 2px; }
+
+.puntos a {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+
+.puntos a::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(243, 234, 217, 0.4);
+  transition: transform 0.3s var(--curva), background-color 0.3s;
+}
+
+.puntos a:hover::before { background: var(--crema); }
+
+.puntos a[aria-current="step"]::before {
+  background: var(--acento-claro);
+  box-shadow: 0 0 0 3px rgba(201, 147, 95, 0.22);
+  transform: scale(1.35);
+}
+
+.puntos a:focus-visible { outline-offset: 0; }
+
+/* Linea de progreso entre el primer y el ultimo punto. */
+.puntos-riel {
+  position: absolute;
+  top: 20px;
+  bottom: 20px;
+  left: 50%;
+  width: 1px;
+  margin-left: -0.5px;
+  background: rgba(243, 234, 217, 0.14);
+}
+
+.indicador-barra {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(var(--acento-claro), var(--acento));
+  transform: scaleY(0);
+  transform-origin: top;
+}
+
+.scrub .indicacion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: absolute;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  color: var(--crema-suave);
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: opacity 0.4s;
+}
+
+.indicacion-linea {
+  position: relative;
+  width: 1px;
+  height: 22px;
+  overflow: hidden;
+  background: rgba(243, 234, 217, 0.18);
+}
+
+.indicacion-linea::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--acento-claro);
+  animation: gota 2.2s var(--curva) infinite;
+}
+
+@keyframes gota {
+  0% { transform: translateY(-100%); }
+  60%, 100% { transform: translateY(100%); }
+}
+
+.scrub .indicacion.oculto { visibility: hidden; opacity: 0; transition: opacity 0.4s, visibility 0s linear 0.4s; }
+
+.scrub .indicador {
+  display: block;
+  position: absolute;
+  inset: auto 0 0;
+  pointer-events: none;
+}
+
+.indicador-texto { display: none; }
+
+.carga {
+  position: absolute;
+  right: var(--gutter);
+  bottom: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--crema-suave);
+  font-size: 0.75rem;
+}
+
+.carga::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--linea-fuerte);
+  border-top-color: var(--crema);
+  border-radius: 50%;
+  animation: giro 1.1s linear infinite;
+}
+
+@keyframes giro { to { transform: rotate(360deg); } }
+
+/* Pantallas bajas: menos altura de texto. */
+@media (max-height: 700px) {
+  .scrub .capitulo h1, .scrub .capitulo h2 { font-size: 1.5rem; margin-bottom: 6px; }
+  .scrub .etapa { margin-bottom: 8px; }
+  .scrub .capitulo-texto { font-size: 0.875rem; line-height: 1.45; }
+  .scrub .capitulo { padding: 14px 18px 16px; }
+}
+
+/* Texto a la izquierda. Debe coincidir con sideLayoutQuery en src/config.js. */
+@media (min-width: 1200px) and (min-aspect-ratio: 5/4), (max-height: 520px) and (min-aspect-ratio: 3/2) {
+  :root { --gutter: 28px; }
+
+  .scrub .velo {
+    background:
+      linear-gradient(to right, rgba(var(--velo), 0.62) 0, rgba(var(--velo), 0.3) 22%, rgba(var(--velo), 0) 36%),
+      linear-gradient(to top, rgba(var(--velo), 0.5) 0, rgba(var(--velo), 0) 14%);
+  }
+
+  .scrub .capitulos {
+    inset: 50% auto auto clamp(56px, 6vw, 112px);
+    width: 25rem;
+  }
+
+  .scrub .capitulo {
+    --centrado: -50%;
+    inset: 0 auto auto 0;
+    width: 25rem;
+    max-width: none;
+    padding: 30px 32px 32px;
+    border-radius: 28px;
+  }
+
+  .scrub .capitulo h1,
+  .scrub .capitulo h2 { font-size: clamp(2.25rem, 1.4rem + 1.4vw, 3rem); margin-bottom: 16px; }
+
+  .scrub .capitulo-texto { font-size: 1rem; }
+  .capitulo-hilo { inset: auto 32px 0; }
+
+  .scrub .puntos { right: clamp(20px, 2.2vw, 40px); top: 50%; padding: 8px 4px; }
+  .puntos a { width: 32px; height: 32px; }
+  .puntos-riel { top: 24px; bottom: 24px; }
+
+  .scrub .indicacion {
+    left: clamp(56px, 6vw, 112px);
+    bottom: 40px;
+    transform: none;
+  }
+
+  .indicador-texto {
+    position: absolute;
+    right: clamp(20px, 2.2vw, 40px);
+    bottom: 36px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    color: var(--crema-suave);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+  }
+
+  .indicador-numero { color: var(--crema); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .indicador-titulo { margin-left: 10px; font-family: var(--serif); font-size: 1rem; font-style: italic; letter-spacing: 0; color: var(--crema); }
+  .carga { right: 50%; transform: translateX(50%); bottom: 36px; }
+}
+
+@media (max-height: 520px) and (min-aspect-ratio: 3/2) {
+  .scrub .indicacion, .indicador-texto { display: none; }
+  .scrub .capitulos, .scrub .capitulo { width: 18rem; }
+  .scrub .capitulo { padding: 16px 20px 18px; }
+}
+
+/* ---------- Tiempo real (Three.js) ---------- */
+
+.lienzo { background: transparent; }
+
+/* Movimiento reducido con WebGL: fotograma final en la zona del poster, sin scroll largo. */
+.estatico-3d .lienzo {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.estatico-3d.frame-pintado .poster { visibility: hidden; }
+
+@media (prefers-reduced-motion: reduce) {
+  .carga::before, .indicacion-linea::after { animation: none; }
+}
+
+/* ---------- Epilogo: notas del aroma ---------- */
+
+/* Etiquetas pequeñas de vidrio que siguen a su nube de aroma (src/ui/aromas.js las coloca). */
+.aromas { display: none; }
+
+.scrub .aromas {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.aroma {
+  --vidrio-tinte: rgba(18, 14, 12, 0.5);
+  --vidrio-blur: 14px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 9px;
+  border-radius: 999px;
+  color: var(--crema);
+  font-family: var(--serif);
+  font-size: 1.0625rem;
+  font-style: italic;
+  line-height: 1.2;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.aroma-punto {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--nota, var(--acento));
+  box-shadow: 0 0 10px 1px var(--nota, var(--acento));
+}
+
+.aroma[data-nota="panela"] { --nota: #e0a857; }
+.aroma[data-nota="mandarina"] { --nota: #f28c38; }
+.aroma[data-nota="cacao"] { --nota: #b67a5f; }
+
+/* En movil o pantallas estrechas se amontonan: solo quedan las motas. */
+@media (max-width: 760px), (pointer: coarse) {
+  .scrub .aromas { display: none; }
+}

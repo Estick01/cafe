@@ -1,0 +1,12 @@
+{
+  "name": "vetamora-landing-3d",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Prototipo en tiempo real de la animacion de cafe controlada por scroll.",
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/servidor.js 5192",
+    "test": "node --test \"test/*.test.mjs\"",
+    "fixture": "python scripts/generar_dimensiones.py && python scripts/generar_fixture.py"
+  }
+}

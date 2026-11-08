@@ -1,0 +1,110 @@
+/*
+ * Base: tokens de color, tipografia y reglas comunes.
+ * Paleta: marmol casi negro, crema, caoba y un unico acento calido (caramelo).
+ */
+:root {
+  color-scheme: dark;
+
+  --negro: #0c0a09;
+  --marmol: #151210;
+  --marmol-claro: #201b18;
+  --crema: #f3ead9;
+  --crema-suave: #d8ccb9;      /* texto secundario: 11,6:1 sobre --negro */
+  --crema-tenue: #b3a693;      /* solo texto auxiliar grande o de 13 px+: 7,6:1 sobre --negro */
+  --caoba: #7a4426;
+  --caoba-profundo: #3a2015;
+  --acento: #c9935f;           /* caramelo: 7,2:1 sobre --negro */
+  --acento-claro: #e2b98d;
+  --linea: rgba(243, 234, 217, 0.14);
+  --linea-fuerte: rgba(243, 234, 217, 0.28);
+  --velo: 12, 10, 9;
+
+  --serif: "Cormorant Garamond", "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --sans: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --gutter: 16px;
+  --alto-cabecera: 72px;
+  --altura-pantalla: 100vh;
+  --curva: cubic-bezier(0.22, 0.7, 0.2, 1);
+}
+
+@supports (height: 100svh) {
+  :root { --altura-pantalla: 100svh; }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { background: var(--negro); -webkit-text-size-adjust: 100%; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+body {
+  margin: 0;
+  background: var(--negro);
+  color: var(--crema);
+  font: 400 1rem/1.6 var(--sans);
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+h1, h2, h3 {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+em { font-style: italic; }
+p { margin: 0; text-wrap: pretty; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+img, svg, canvas { display: block; }
+button, input, select { font: inherit; color: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--acento-claro);
+  outline-offset: 3px;
+}
+
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.filtros { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+.saltar {
+  position: fixed;
+  top: 8px;
+  left: 50%;
+  z-index: 60;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--crema);
+  color: var(--negro);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transform: translate(-50%, -200%);
+}
+
+.saltar:focus { transform: translate(-50%, 0); }
+
+.oculto { visibility: hidden; }
+
+/* Rotulos pequenos en versalitas: etapas, sobretitulos y datos. */
+.sobretitulo,
+.etapa,
+.notas-titulo,
+.datos dt {
+  font: 500 0.6875rem/1.4 var(--sans);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}

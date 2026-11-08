@@ -1,0 +1,528 @@
+{
+  "status": "ready",
+  "glb": "cafe.glb",
+  "units": "metros",
+  "upAxis": "Y (Three.js). Blender (x, y, z) => Three (x, z, -y). La camara de Blender mira desde -Y: en Three mira desde +Z.",
+  "compression": {
+    "geometry": "ninguna (sin Draco ni meshopt, no hace falta decoder)",
+    "textures": "JPEG embebido; ningun KTX2 ni WebP",
+    "extensionsUsed": [
+      "KHR_materials_clearcoat"
+    ],
+    "extensionsRequired": []
+  },
+  "sizeBytes": {
+    "files": {
+      "cafe.glb": 5261856,
+      "marmol_pared_color.jpg": 206278,
+      "marmol_pared_rough.jpg": 149777,
+      "marmol_suelo_color.jpg": 251339,
+      "marmol_suelo_rough.jpg": 155388
+    },
+    "total": 6024638,
+    "totalMB": 5.75,
+    "budgetMB": 12
+  },
+  "totalTriangles": 55194,
+  "objects": {
+    "GEO-platillo": {
+      "triangles": 6784,
+      "vertices": 3522,
+      "parent": null,
+      "material": "MAT-ceramica_platillo",
+      "doubleSided": false,
+      "attributes": [
+        "NORMAL",
+        "POSITION",
+        "TANGENT",
+        "TEXCOORD_0"
+      ],
+      "exportTranslation": [
+        0.0,
+        0.0445,
+        0.0
+      ],
+      "exportRotationXYZW": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "bboxLocal": {
+        "min": [
+          -0.08819,
+          0.0,
+          -0.08819
+        ],
+        "max": [
+          0.08819,
+          0.01438,
+          0.08819
+        ]
+      },
+      "bboxWorldAtExportPose": {
+        "min": [
+          -0.08819,
+          0.0445,
+          -0.08819
+        ],
+        "max": [
+          0.08819,
+          0.05888,
+          0.08819
+        ]
+      }
+    },
+    "GEO-taza": {
+      "triangles": 5756,
+      "vertices": 3108,
+      "parent": null,
+      "material": "MAT-ceramica_taza",
+      "doubleSided": true,
+      "attributes": [
+        "NORMAL",
+        "POSITION",
+        "TANGENT",
+        "TEXCOORD_0"
+      ],
+      "exportTranslation": [
+        0.0,
+        0.04667,
+        0.0
+      ],
+      "exportRotationXYZW": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "bboxLocal": {
+        "min": [
+          -0.04751,
+          0.0,
+          -0.0475
+        ],
+        "max": [
+          0.0475,
+          0.07462,
+          0.04749
+        ]
+      },
+      "bboxWorldAtExportPose": {
+        "min": [
+          -0.04751,
+          0.04667,
+          -0.0475
+        ],
+        "max": [
+          0.0475,
+          0.12129,
+          0.04749
+        ]
+      }
+    },
+    "GEO-asa": {
+      "triangles": 1728,
+      "vertices": 925,
+      "parent": null,
+      "material": "MAT-ceramica_asa",
+      "doubleSided": true,
+      "attributes": [
+        "NORMAL",
+        "POSITION",
+        "TANGENT",
+        "TEXCOORD_0",
+        "_ASA_AVANCE"
+      ],
+      "exportTranslation": [
+        0.0,
+        0.04667,
+        0.0
+      ],
+      "exportRotationXYZW": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "bboxLocal": {
+        "min": [
+          0.0395,
+          0.01122,
+          -0.00678
+        ],
+        "max": [
+          0.08214,
+          0.0696,
+          0.00677
+        ]
+      },
+      "bboxWorldAtExportPose": {
+        "min": [
+          0.0395,
+          0.05789,
+          -0.00678
+        ],
+        "max": [
+          0.08214,
+          0.11627,
+          0.00677
+        ]
+      }
+    },
+    "GEO-grano": {
+      "triangles": 24320,
+      "vertices": 12511,
+      "parent": null,
+      "material": "MAT-grano_tostado",
+      "doubleSided": false,
+      "attributes": [
+        "NORMAL",
+        "POSITION",
+        "TANGENT",
+        "TEXCOORD_0"
+      ],
+      "exportTranslation": [
+        0.0,
+        0.14,
+        0.0
+      ],
+      "exportRotationXYZW": [
+        0.04097,
+        0.05616,
+        0.11982,
+        0.99036
+      ],
+      "bboxLocal": {
+        "min": [
+          -0.01777,
+          -0.02343,
+          -0.01638
+        ],
+        "max": [
+          0.01782,
+          0.02337,
+          0.006
+        ]
+      },
+      "bboxWorldAtExportPose": {
+        "min": [
+          -0.0183,
+          0.11673,
+          -0.01648
+        ],
+        "max": [
+          0.01846,
+          0.16326,
+          0.00713
+        ]
+      }
+    },
+    "GEO-cascarilla": {
+      "triangles": 11610,
+      "vertices": 6240,
+      "parent": "GEO-grano",
+      "material": "MAT-cascarilla",
+      "doubleSided": true,
+      "attributes": [
+        "NORMAL",
+        "POSITION",
+        "TANGENT",
+        "TEXCOORD_0"
+      ],
+      "exportTranslation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "exportRotationXYZW": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "bboxLocal": {
+        "min": [
+          -0.00509,
+          -0.01974,
+          -0.00091
+        ],
+        "max": [
+          0.0062,
+          0.01927,
+          0.00487
+        ]
+      },
+      "bboxWorldAtExportPose": {
+        "min": [
+          -0.00603,
+          0.1203,
+          -0.00169
+        ],
+        "max": [
+          0.00535,
+          0.15939,
+          0.00543
+        ]
+      }
+    },
+    "GEO-base_piedra": {
+      "triangles": 4992,
+      "vertices": 2889,
+      "parent": null,
+      "material": "MAT-piedra_base",
+      "doubleSided": false,
+      "attributes": [
+        "NORMAL",
+        "POSITION",
+        "TANGENT",
+        "TEXCOORD_0"
+      ],
+      "exportTranslation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "exportRotationXYZW": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "bboxLocal": {
+        "min": [
+          -0.11178,
+          0.0,
+          -0.11178
+        ],
+        "max": [
+          0.11178,
+          0.0445,
+          0.11178
+        ]
+      },
+      "bboxWorldAtExportPose": {
+        "min": [
+          -0.11178,
+          0.0,
+          -0.11178
+        ],
+        "max": [
+          0.11178,
+          0.0445,
+          0.11178
+        ]
+      }
+    },
+    "GEO-suelo": {
+      "triangles": 2,
+      "vertices": 4,
+      "parent": null,
+      "material": "MAT-marmol_suelo",
+      "doubleSided": false,
+      "attributes": [
+        "NORMAL",
+        "POSITION",
+        "TANGENT",
+        "TEXCOORD_0"
+      ],
+      "exportTranslation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "exportRotationXYZW": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "bboxLocal": {
+        "min": [
+          -1.5,
+          0.0,
+          -1.5
+        ],
+        "max": [
+          1.5,
+          0.0,
+          1.5
+        ]
+      },
+      "bboxWorldAtExportPose": {
+        "min": [
+          -1.5,
+          0.0,
+          -1.5
+        ],
+        "max": [
+          1.5,
+          0.0,
+          1.5
+        ]
+      }
+    },
+    "GEO-pared": {
+      "triangles": 2,
+      "vertices": 4,
+      "parent": null,
+      "material": "MAT-marmol_pared",
+      "doubleSided": false,
+      "attributes": [
+        "NORMAL",
+        "POSITION",
+        "TANGENT",
+        "TEXCOORD_0"
+      ],
+      "exportTranslation": [
+        0.0,
+        1.5,
+        -0.34
+      ],
+      "exportRotationXYZW": [
+        0.70711,
+        0.0,
+        0.0,
+        0.70711
+      ],
+      "bboxLocal": {
+        "min": [
+          -1.5,
+          0.0,
+          -1.5
+        ],
+        "max": [
+          1.5,
+          0.0,
+          1.5
+        ]
+      },
+      "bboxWorldAtExportPose": {
+        "min": [
+          -1.5,
+          -0.0,
+          -0.34
+        ],
+        "max": [
+          1.5,
+          3.0,
+          -0.34
+        ]
+      }
+    }
+  },
+  "placement": {
+    "exportPose": "timeline.pose_at(0): grano 0.140, platillo 0.0445, taza y asa 0.04667, base 0, sin vaiven.",
+    "rule": "Cada altura de timeline.py va tal cual a position.y del objeto del mismo nombre: saucer_z => GEO-platillo, cup_z => GEO-taza y GEO-asa, pedestal_z => GEO-base_piedra, bean_z => GEO-grano. x y z quedan en 0.",
+    "origins": {
+      "GEO-platillo": "eje de la taza, y = 0 en la base del platillo",
+      "GEO-taza": "eje, y = 0 en el pie (CUP_SEAT = 0.00217 por encima del platillo)",
+      "GEO-asa": "mismo marco que GEO-taza: moverlos siempre juntos",
+      "GEO-grano": "centro del grano; la cara plana con el surco mira a +Z local",
+      "GEO-cascarilla": "hija de GEO-grano con transformacion identidad; no necesita animacion propia",
+      "GEO-base_piedra": "eje, y = 0 en su base; arriba y = 0.0445",
+      "GEO-suelo": "plano de 3x3 m en y = 0, normal +Y",
+      "GEO-pared": "plano de 3x3 m, centro en (0, 1.5, -0.34), normal +Z. Su geometria local esta en el plano XZ: el giro vive en el nodo."
+    },
+    "beanRotation": "timeline.bean_rotation = (rx, ry, rz) en radianes, Euler XYZ de Blender. En Three: grano.rotation.set(rx, rz, -ry, 'YZX'). Comprobado contra el cuaternion exportado.",
+    "cameraShots": "SHOT_* de timeline.py: convertir posicion y objetivo con (x, z, -y). Lente de 55 mm sobre sensor de 36 mm de ancho."
+  },
+  "materials": {
+    "MAT-grano_tostado": {
+      "baseColor": "grano_color (2048)",
+      "normal": "grano_normal (2048)",
+      "roughness": "grano_rough (1024)",
+      "clearcoat": 0.28,
+      "clearcoatRoughness": 0.3
+    },
+    "MAT-cascarilla": {
+      "baseColor": "cascarilla_color (1024)",
+      "normal": "cascarilla_normal (1024)",
+      "roughness": "constante 0.62"
+    },
+    "MAT-ceramica_platillo": {
+      "baseColor": "ceramica_color (2048)",
+      "normal": "ceramica_normal (2048)",
+      "roughness": "ceramica_rough (1024)",
+      "clearcoat": 0.28,
+      "clearcoatRoughness": 0.22
+    },
+    "MAT-ceramica_taza": {
+      "sameAs": "MAT-ceramica_platillo"
+    },
+    "MAT-ceramica_asa": {
+      "sameAs": "MAT-ceramica_platillo"
+    },
+    "MAT-piedra_base": {
+      "baseColor": "base_piedra_color (2048)",
+      "roughness": "base_piedra_rough (1024)",
+      "normal": null
+    },
+    "MAT-marmol_suelo": {
+      "baseColor": "marmol_suelo_color.jpg (2048, externo)",
+      "roughness": "marmol_suelo_rough.jpg (2048, externo)",
+      "normal": null
+    },
+    "MAT-marmol_pared": {
+      "baseColor": "marmol_pared_color.jpg (2048, externo)",
+      "roughness": "marmol_pared_rough.jpg (2048, externo)",
+      "normal": null
+    }
+  },
+  "materialNotes": [
+    "GLTFLoader asigna todos los mapas, colorSpace y flipY. Los materiales con clearcoat llegan como MeshPhysicalMaterial.",
+    "Los mapas de la ceramica son un unico atlas compartido por platillo, taza y asa (las UV originales del archivo del usuario, sin solapes).",
+    "Base color sin luz. Los mapas normales son tangentes, convenio OpenGL (+Y), horneados con tangentes MikkTSpace: el glb trae TANGENT, no hay que recalcular nada.",
+    "La subsuperficie de la cascarilla y la ceramica no se exporta: se ven un poco mas oscuras que en Cycles con la misma luz.",
+    "En roughness el canal valido es G. metallicFactor es 0 en todos, asi que metalnessMap no influye.",
+    "JPEG con croma 4:2:0, tambien en los mapas normales: suficiente en los controles, pero un primer plano extremo podria mostrar algun artefacto.",
+    "No hay luces ni camara en el glb."
+  ],
+  "externalTextures": {
+    "files": [
+      "marmol_suelo_color.jpg",
+      "marmol_suelo_rough.jpg",
+      "marmol_pared_color.jpg",
+      "marmol_pared_rough.jpg"
+    ],
+    "howLoaded": "El glb las referencia por URI relativa: GLTFLoader las carga solo si los .jpg siguen junto a cafe.glb. No hay que cargarlas a mano.",
+    "ifLoadedManually": "flipY = false, colorSpace = SRGBColorSpace en color y NoColorSpace en rough, wrapS y wrapT = MirroredRepeatWrapping."
+  },
+  "uvQuirks": {
+    "GEO-suelo": "Azulejo de 1 m en TEXCOORD_0, U y V fuera de 0..1, sampler MIRRORED_REPEAT. Costuras de espejo en x = +-0.5 y en z = +0.66 y -0.34.",
+    "GEO-pared": "Igual: azulejo de 1 m, costuras de espejo en x = +-0.5 y en y = 1.0.",
+    "GEO-grano": "Esfera UV propia. Costura en el dorso (-Z local en Three) y polos en las puntas (+-Y local).",
+    "GEO-cascarilla": "Tres laminas en tres franjas verticales del atlas. Son mallas abiertas: requieren doubleSided, que ya viene puesto.",
+    "GEO-base_piedra": "Atlas propio: tapa arriba-izquierda, fondo arriba-derecha, lateral en la mitad inferior.",
+    "ceramica": "Atlas original del archivo del usuario, sin tocar. No hay UV2."
+  },
+  "attributes": {
+    "_ASA_AVANCE": {
+      "object": "GEO-asa",
+      "gltfName": "_ASA_AVANCE",
+      "threeName": "_asa_avance (GLTFLoader pasa a minusculas los atributos propios)",
+      "type": "float por vertice, SCALAR",
+      "range": [
+        0.0,
+        1.0
+      ],
+      "meaning": "0 en la union inferior, 1 en la superior, proporcional a la longitud del arco",
+      "verified": {
+        "accessor": 0,
+        "componentType": 5126,
+        "type": "SCALAR",
+        "count": 925,
+        "declared_min": null,
+        "declared_max": null,
+        "real_min": 0.0,
+        "real_max": 1.0,
+        "local_y_at_0": 0.01773,
+        "local_y_at_1": 0.06094
+      },
+      "clipFromBlender": "Visible donde _asa_avance < -0.001 + 1.002 * handle_growth (ceramic.handle_clip_value)."
+    },
+    "tazaReveal": "GEO-taza no lleva atributo: el recorte de Blender es por altura local. Visible donde y local < pose.reveal, con y = 0 en el pie."
+  },
+  "bakedOpaque": "La taza y el asa se hornearon sin recortes. El recorte de aparicion lo tiene que hacer el shader de la app; ambas ya son doubleSided para que no se vea a traves del corte.",
+  "checks": "../_checks/check_*.png: renders Cycles en CPU del propio glb importado en Blender. Sin probar todavia en Three.js."
+}

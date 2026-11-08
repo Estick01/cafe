@@ -1,0 +1,166 @@
+/*
+ * Navegacion: una pildora de vidrio flotante con el monograma, tres enlaces y la reserva.
+ * En movil, la pildora muestra el monograma y un boton de menu que abre un panel.
+ */
+.cabecera {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 30;
+  display: flex;
+  justify-content: center;
+  padding: max(12px, env(safe-area-inset-top)) var(--gutter) 0;
+  pointer-events: none;
+}
+
+.nav-pildora {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 52px;
+  padding: 4px 4px 4px 10px;
+  border-radius: 999px;
+  pointer-events: auto;
+}
+
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 8px 0 2px;
+  border-radius: 999px;
+  color: var(--crema);
+  text-decoration: none;
+}
+
+.marca-nombre {
+  font: 500 0.75rem/1 var(--sans);
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+}
+
+.monograma { flex: none; color: var(--crema); }
+
+.menu-boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 16px 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(243, 234, 217, 0.08);
+  color: var(--crema);
+  font: 500 0.8125rem/1 var(--sans);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.menu-boton:hover { background: rgba(243, 234, 217, 0.14); }
+
+.menu-boton-icono {
+  position: relative;
+  width: 14px;
+  height: 8px;
+}
+
+.menu-boton-icono::before,
+.menu-boton-icono::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 1.5px;
+  border-radius: 1px;
+  background: currentColor;
+  transition: transform 0.25s var(--curva), top 0.25s var(--curva);
+}
+
+.menu-boton-icono::before { top: 0; }
+.menu-boton-icono::after { top: 6.5px; }
+.menu-boton[aria-expanded="true"] .menu-boton-icono::before { top: 3.25px; transform: rotate(45deg); }
+.menu-boton[aria-expanded="true"] .menu-boton-icono::after { top: 3.25px; transform: rotate(-45deg); }
+
+/* Panel movil: dentro de la pildora no puede volver a desenfocar la pagina, asi que es opaco. */
+.menu-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(240px, calc(100vw - 2 * var(--gutter)));
+  padding: 8px;
+  border: 1px solid var(--linea);
+  border-radius: 24px;
+  background: rgba(22, 18, 16, 0.97);
+  box-shadow: var(--vidrio-aro), var(--vidrio-sombra);
+}
+
+.menu-panel[hidden] { display: none; }
+
+.menu-panel a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 16px;
+  color: var(--crema);
+  font-size: 0.9375rem;
+  text-decoration: none;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.menu-panel a:hover { background: rgba(243, 234, 217, 0.08); }
+
+.menu-panel .menu-destacado {
+  justify-content: center;
+  margin-top: 6px;
+  background: var(--crema);
+  color: var(--negro);
+  font-weight: 500;
+}
+
+.menu-panel .menu-destacado:hover { background: var(--acento-claro); color: var(--negro); }
+
+/* Escritorio: los enlaces viven dentro de la pildora y el boton desaparece. */
+@media (min-width: 900px) {
+  .cabecera { padding-top: 18px; }
+
+  .nav-pildora {
+    width: auto;
+    gap: 20px;
+    padding: 4px 4px 4px 12px;
+  }
+
+  .menu-boton { display: none; }
+
+  .menu-panel,
+  .menu-panel[hidden] {
+    position: static;
+    display: block;
+    width: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .menu-panel ul { display: flex; align-items: center; gap: 2px; }
+
+  .menu-panel a {
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 999px;
+    color: var(--crema-suave);
+    font-size: 0.8125rem;
+    letter-spacing: 0.02em;
+  }
+
+  .menu-panel a:hover { color: var(--crema); }
+
+  .menu-panel .menu-destacado {
+    margin: 0 0 0 8px;
+    padding: 0 22px;
+  }
+}
