@@ -46,7 +46,7 @@ with sync_playwright() as p:
     assert page.locator('#ficha-geisha').is_visible()
     assert page.evaluate('__co2.director.getSeleccion()') == 3
     href = page.locator('#ficha-geisha .boton--pedir').get_attribute('href')
-    assert href.startswith('https://wa.me/573168087491?text=') and 'Geisha' in href
+    assert href.startswith('https://wa.me/573152292036?text=') and 'Geisha' in href
     page.screenshot(path='debug/shop-desktop.png')
     results.append('Scroll reversible, enlace a tienda, selección Geisha y WhatsApp correctos')
     page.locator('#buscar-boton').click()

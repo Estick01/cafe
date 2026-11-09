@@ -23,7 +23,7 @@ export const MARCA = Object.freeze({
   pais: 'Colombia',
   instagram: 'https://www.instagram.com/co2coffeelab/',
   /* WhatsApp de pedidos en formato internacional, sin "+" ni espacios. */
-  whatsapp: '573168087491',
+  whatsapp: '573152292036',
   moneda: 'COP',
   /* Logo: taza de linea (usa currentColor; blanco sobre el bloque verde de la etiqueta). */
   logo: 'assets/marca/logo-taza.svg',

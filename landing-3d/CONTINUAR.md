@@ -30,7 +30,7 @@ Origen: conversación local de Claude `479e44b7-3229-4a7a-bf10-5345ed24fc35`, pr
 
 - Promover CO2 Coffee Lab, de Pasto, con referencia `Escritorio/cafe.mp4`.
 - Productos genéricos basados en `../img_productos`: bolsa azul rey, bloque verde, etiqueta vertical de color.
-- WhatsApp +57 3168087491; logo provisional de taza.
+- WhatsApp actualizado por el usuario a +57 3152292036; logo provisional de taza.
 - Cuatro lotes de muestra: Papayo, Bourbon Amarillo, Pacamara Rojo y Geisha. Notas ilustrativas y precio por consultar.
 - Mantener GitHub Pages como alojamiento y revisar visualmente antes de publicar.
 - `RENDER_PLAN.md` es una dirección anterior con Mantaflow. El rumbo posterior elegido fue Three.js en tiempo real y movimiento determinista, sin simulación de fluidos.
