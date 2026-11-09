@@ -81,6 +81,7 @@ export function createDirector({ stage, modules, marca, quality, sideLayout }) {
   const projected = new THREE.Vector3();
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
+  const shopSlot = document.querySelector('.tienda-escena');
   [vitrina, inmersion].forEach((module) => { if (module?.group) module.group.visible = false; });
 
   /* Post-proceso solo en calidad alta; si la calidad baja, se vuelve a renderer.render. */
@@ -152,6 +153,19 @@ export function createDirector({ stage, modules, marca, quality, sideLayout }) {
     vitrinaCamera.setViewOffset(size.width, size.height,
       desktop && view.fase === 'hero' ? -size.width * 0.17 : 0,
       view.fase === 'hero' ? -size.height * 0.06 : 0, size.width, size.height);
+    if (!desktop && (view.fase === 'tienda' || view.fase === 'emerge') && shopSlot) {
+      const slot = shopSlot.getBoundingClientRect();
+      if (slot.height > 0) {
+        const direction = vitrinaCamera.position.clone().sub(vitrinaTarget).normalize();
+        vitrinaTarget.set(0, 0.112, 0);
+        const distance = Math.max(0.38 * size.height / slot.height, 0.20 * size.width / slot.width / aspect) / (2 * tan);
+        vitrinaCamera.position.copy(vitrinaTarget).addScaledVector(direction, distance);
+        vitrinaCamera.lookAt(vitrinaTarget);
+        vitrinaCamera.setViewOffset(size.width, size.height,
+          size.width / 2 - (slot.left + slot.width / 2),
+          size.height / 2 - (slot.top + slot.height / 2 - 46), size.width, size.height);
+      }
+    }
     vitrinaCamera.updateProjectionMatrix();
     vitrinaCamera.updateMatrixWorld();
     return vitrinaCamera.position.distanceTo(vitrinaTarget);
@@ -246,6 +260,7 @@ export function createDirector({ stage, modules, marca, quality, sideLayout }) {
   return {
     render,
     rotateProduct: (dx, dy) => vitrina?.rotate(dx, dy),
+    zoomProduct: factor => vitrina?.zoom(factor),
     resetProduct: () => vitrina?.resetRotation(),
     shopInteraction: () => vitrina?.interaction(),
     visibleProduct: () => vitrina?.selectedIndex(),

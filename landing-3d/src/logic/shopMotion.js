@@ -14,13 +14,13 @@ export function spinAt(change, now) {
 
 // Cada selección nueva parte del producto y ángulo que ya se están mostrando.
 export function createShopMotion(initial = 0) {
-  let selected = initial, shown = initial, yaw = 0.15, pitch = 0, change = null;
+  let selected = initial, shown = initial, yaw = 0.15, pitch = 0, zoom = 1, change = null;
   function at(now) {
-    if (!change) return { index: shown, yaw, pitch, lift: 0, scale: 1, active: false };
+    if (!change) return { index: shown, yaw, pitch, zoom, lift: 0, scale: zoom, active: false };
     const pose = spinAt(change, now);
     shown = pose.index; yaw = pose.yaw;
     if (!pose.active) { change = null; yaw %= TAU; }
-    return { ...pose, yaw, pitch };
+    return { ...pose, yaw, pitch, zoom, scale: pose.scale * zoom };
   }
   return {
     at,
@@ -35,6 +35,7 @@ export function createShopMotion(initial = 0) {
       shown = selected; change = null;
       yaw += dx; pitch = Math.min(0.5, Math.max(-0.5, pitch + dy));
     },
-    reset() { yaw = 0.15; pitch = 0; shown = selected; change = null; },
+    zoomBy(factor) { if (Number.isFinite(factor) && factor > 0) zoom = Math.min(1.45, Math.max(0.75, zoom * factor)); },
+    reset() { yaw = 0.15; pitch = 0; zoom = 1; shown = selected; change = null; },
   };
 }

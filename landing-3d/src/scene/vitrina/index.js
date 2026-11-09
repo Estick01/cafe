@@ -61,7 +61,7 @@ export function createVitrina({ scene, marca, quality }) {
     if (shopActive) poses.forEach((pose, index) => {
       pose.visible = index === interactive.index;
       pose.x = 0; pose.z = 0;
-      pose.y = (fase === 'emerge' ? pose.y : 0.012) + interactive.lift;
+      pose.y = (fase === 'emerge' ? pose.y : 0.012) + interactive.lift + 0.1 * (1 - interactive.zoom);
       pose.rotY = interactive.yaw;
       pose.inclinacion = interactive.pitch;
       pose.escala = interactive.scale;
@@ -93,6 +93,7 @@ export function createVitrina({ scene, marca, quality }) {
   return {
     group, update,
     rotate: (dx, dy) => shop.rotate(dx, dy),
+    zoom: factor => shop.zoomBy(factor),
     resetRotation: () => shop.reset(),
     interaction: () => shop.at(performance.now()),
     selectedIndex: () => shop.at(performance.now()).index,

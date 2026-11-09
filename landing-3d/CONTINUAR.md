@@ -37,6 +37,14 @@ Origen: conversación local de Claude `479e44b7-3229-4a7a-bf10-5345ed24fc35`, pr
 
 ## Próximo paso
 
+### Versionado y zoom
+
+- `npm.cmd run build` prepara `.pages/`. En GitHub Actions, `scripts/build-pages.mjs` usa `GITHUB_SHA` y genera rutas `releases/<commit>/` para CSS, módulos JS (incluidos imports dinámicos), modelos, posters y logo. El HTML raíz apunta a esa versión; enlaces internos y WhatsApp se conservan. `version.json` permite identificar el despliegue. No se borran los datos del navegador ni se fuerza una recarga de una pestaña abierta.
+- El workflow incluye ahora `assets/marca`, ausente del paquete anterior. El versionado entra en vigor cuando se publique el workflow actualizado; el servidor de desarrollo sigue usando rutas normales.
+- Zoom de bolsa mediante rueda, pellizco, teclas +/− y botones de tienda; Centrar restaura tamaño y giro. Disponible también mediante gestos y teclado en el visor de exploración.
+- En móvil y tablet la bolsa ocupa una zona propia entre selector y ficha. La cámara sigue esa zona al desplazar la ficha y deja espacio para los controles. Los granos siguen cayendo.
+- 106 pruebas unitarias aprobadas. El recorrido `--shop` verifica el paquete versionado, giro, zoom, selección única y acceso al pedido en 1440, 768, 390 y 360 px.
+
 Actualización de tienda: se muestra una sola bolsa y se puede girar directamente con ratón, tacto o teclado. El cambio de lote completa una vuelta y sustituye el producto a mitad del giro. Los granos caen en bucle con un reloj independiente del scroll mientras la tienda está visible, incluido el final del recorrido. Esta sección es la excepción al render bajo demanda descrito arriba.
 
 Verificación actual: 104 pruebas aprobadas con `npm.cmd test`. `python scripts/check-browser.py --shop` verifica una sola bolsa, giro de transición, arrastre, granos continuos y exploración en escritorio (1440px) y móvil (390px).

@@ -1,4 +1,5 @@
-﻿import * as THREE from 'three';
+import { productGesture } from '../ui/productGesture.js';
+import * as THREE from 'three';
 import { crearGeometriaBolsa } from './vitrina/bolsa.js';
 import { crearTexturaBolsa } from './vitrina/textura.js';
 import { crearGeometriaGrano, crearMaterialGrano } from './vitrina/piezas.js';
@@ -52,7 +53,7 @@ export function createProductViewer(canvas, lote, marca, { reduced = false } = {
   }
   let yaw = 0.15, pitch = 0, wantedYaw = yaw, wantedPitch = 0;
   let opened = 0, wantedOpen = 0, request = 0, last = 0, disposed = false;
-  let drag = null;
+  let zoom = 1, wantedZoom = 1;
   function reshape(amount) {
     const positions = bodyGeometry.attributes.position;
     const uv = bodyGeometry.attributes.uv;
@@ -77,16 +78,17 @@ export function createProductViewer(canvas, lote, marca, { reduced = false } = {
     const delta = Math.min((now - (last || now - 16)) / 1000, 0.05); last = now;
     const ease = reduced ? 1 : 1 - Math.exp(-delta * 12);
     yaw += (wantedYaw - yaw) * ease; pitch += (wantedPitch - pitch) * ease;
+    zoom += (wantedZoom - zoom) * ease;
     const next = opened + (wantedOpen - opened) * ease;
     if (Math.abs(next - opened) > 0.00001) { opened = next; reshape(opened); }
     pivot.rotation.set(pitch, yaw, 0);
     const rect = canvas.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
     const distance = rect.width / rect.height < 0.8 ? 0.52 : 0.43;
-    camera.position.set(0, 0.035 + opened * 0.24, distance);
+    camera.position.set(0, (0.035 + opened * 0.24) / zoom, distance / zoom);
     camera.lookAt(0, 0.005, 0);
     renderer.render(scene, camera);
-    if (Math.abs(wantedYaw - yaw) + Math.abs(wantedPitch - pitch) + Math.abs(wantedOpen - opened) > 0.0001) wake();
+    if (Math.abs(wantedYaw - yaw) + Math.abs(wantedPitch - pitch) + Math.abs(wantedOpen - opened) + Math.abs(wantedZoom - zoom) > 0.0001) wake();
   }
   function wake() { if (!request && !disposed) request = requestAnimationFrame(render); }
   function resize() {
@@ -94,40 +96,21 @@ export function createProductViewer(canvas, lote, marca, { reduced = false } = {
     renderer.setSize(Math.max(1, rect.width), Math.max(1, rect.height), false);
     camera.aspect = rect.width / Math.max(1, rect.height); camera.updateProjectionMatrix(); wake();
   }
-  function down(event) {
-    if (event.button !== 0) return;
-    drag = { id: event.pointerId, x: event.clientX, y: event.clientY };
-    canvas.setPointerCapture(event.pointerId); canvas.classList.add('agarrado');
-  }
-  function move(event) {
-    if (!drag || event.pointerId !== drag.id) return;
-    wantedYaw += (event.clientX - drag.x) * 0.012;
-    wantedPitch = THREE.MathUtils.clamp(wantedPitch + (event.clientY - drag.y) * 0.006, -0.6, 0.6);
-    drag.x = event.clientX; drag.y = event.clientY; wake();
-  }
-  function up() { drag = null; canvas.classList.remove('agarrado'); }
-  function keyboard(event) {
-    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
-    event.preventDefault();
-    if (event.key === 'ArrowLeft') wantedYaw -= 0.3;
-    if (event.key === 'ArrowRight') wantedYaw += 0.3;
-    if (event.key === 'ArrowUp') wantedPitch = Math.max(-0.6, wantedPitch - 0.15);
-    if (event.key === 'ArrowDown') wantedPitch = Math.min(0.6, wantedPitch + 0.15);
-    wake();
-  }
-  canvas.addEventListener('pointerdown', down); canvas.addEventListener('pointermove', move);
-  canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', up);
-  canvas.addEventListener('lostpointercapture', up); canvas.addEventListener('keydown', keyboard);
+  const gestures = productGesture(canvas, {
+    rotate(x, y) { wantedYaw += x; wantedPitch = THREE.MathUtils.clamp(wantedPitch + y, -0.6, 0.6); wake(); },
+    zoom(factor) { wantedZoom = THREE.MathUtils.clamp(wantedZoom * factor, 0.75, 1.45); wake(); },
+    reset() { wantedYaw = 0.15; wantedPitch = 0; wantedZoom = 1; wake(); },
+  });
   const observer = new ResizeObserver(resize); observer.observe(canvas);
   reshape(0); resize();
   return {
     front() { wantedYaw = Math.round(yaw / (Math.PI * 2)) * Math.PI * 2; wantedPitch = 0; wake(); },
     back() { wantedYaw = Math.round((yaw - Math.PI) / (Math.PI * 2)) * Math.PI * 2 + Math.PI; wantedPitch = 0; wake(); },
     open(value) { wantedOpen = value ? 1 : 0; wantedPitch = 0; wake(); },
-    state: () => ({ yaw, pitch, opened }),
+    state: () => ({ yaw, pitch, opened, zoom }),
     dispose() {
       disposed = true; cancelAnimationFrame(request); observer.disconnect();
-      for (const [type, handler] of [['pointerdown', down], ['pointermove', move], ['pointerup', up], ['pointercancel', up], ['lostpointercapture', up], ['keydown', keyboard]]) canvas.removeEventListener(type, handler);
+      gestures.dispose();
       [source, bodyGeometry, sealGeometry, beansGeometry].forEach(g => g.dispose());
       [material, lining, beansMaterial].forEach(m => m.dispose()); texture.dispose();
       renderer.dispose(); renderer.forceContextLoss();

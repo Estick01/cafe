@@ -1,6 +1,14 @@
 ﻿import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createShopMotion, spinAt, SPIN_MS } from '../src/logic/shopMotion.js';
+test('zoom limitado, conservado al cambiar lote y restaurado al centrar', () => {
+  const motion = createShopMotion();
+  motion.zoomBy(100); assert.equal(motion.at(0).zoom, 1.45);
+  motion.select(1, 0); assert.equal(motion.at(SPIN_MS).scale, 1.45);
+  motion.zoomBy(0.01); assert.equal(motion.at(2000).zoom, 0.75);
+  motion.zoomBy(NaN); assert.equal(motion.at(2001).zoom, 0.75);
+  motion.reset(); assert.equal(motion.at(2002).zoom, 1);
+});
 test('cambio de lote: conserva el anterior, cambia a mitad del giro y termina una vuelta', () => {
   const change = { from: 0, to: 3, yaw: 0.15, start: 100 };
   assert.equal(spinAt(change, 100).index, 0);

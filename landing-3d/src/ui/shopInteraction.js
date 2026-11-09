@@ -1,45 +1,39 @@
+import { productGesture } from './productGesture.js';
+
 export function createShopInteraction(getDirector, onChange) {
+  const slot = document.querySelector('.tienda-escena');
+  slot.removeAttribute('aria-hidden');
   const surface = document.createElement('div');
   surface.className = 'tienda-manipular';
   surface.dataset.shopDrag = '';
   surface.tabIndex = 0;
   surface.setAttribute('role', 'group');
-  surface.setAttribute('aria-label', 'Girar bolsa: arrastra o usa las flechas del teclado. Inicio restablece el frente.');
-  surface.innerHTML = '<span>Arrastra para girar · Doble clic para centrar</span>';
+  surface.setAttribute('aria-label', 'Bolsa 3D. Arrastra o usa las flechas para girar; pellizca, usa la rueda o las teclas más y menos para acercar. Inicio restablece.');
   surface.hidden = true;
   document.querySelector('#tienda .fijo').append(surface);
-  let drag = null;
-  surface.addEventListener('pointerdown', event => {
-    if (event.button !== 0) return;
-    event.preventDefault(); event.stopPropagation();
-    surface.focus({ preventScroll: true });
-    drag = { id: event.pointerId, x: event.clientX, y: event.clientY };
-    surface.setPointerCapture(event.pointerId); surface.classList.add('agarrado');
+  const changeZoom = factor => { getDirector()?.zoomProduct(factor); onChange(); };
+  const reset = () => { getDirector()?.resetProduct(); onChange(); };
+  const gestures = productGesture(surface, {
+    rotate: (x, y) => { getDirector()?.rotateProduct(x, y); onChange(); }, zoom: changeZoom, reset,
   });
-  surface.addEventListener('pointermove', event => {
-    if (!drag || drag.id !== event.pointerId) return;
-    getDirector()?.rotateProduct((event.clientX - drag.x) * 0.012, (event.clientY - drag.y) * 0.005);
-    drag.x = event.clientX; drag.y = event.clientY; onChange();
-  });
-  const stop = () => { drag = null; surface.classList.remove('agarrado'); };
-  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(type => surface.addEventListener(type, stop));
   surface.addEventListener('click', event => event.stopPropagation());
-  surface.addEventListener('dblclick', () => { getDirector()?.resetProduct(); onChange(); });
-  surface.addEventListener('keydown', event => {
-    const steps = { ArrowLeft: [-0.25, 0], ArrowRight: [0.25, 0], ArrowUp: [0, -0.1], ArrowDown: [0, 0.1] };
-    if (event.key === 'Home') getDirector()?.resetProduct();
-    else if (steps[event.key]) getDirector()?.rotateProduct(...steps[event.key]);
-    else return;
-    event.preventDefault(); event.stopPropagation(); onChange();
+  const controls = document.createElement('div');
+  controls.className = 'tienda-zoom'; controls.hidden = true;
+  controls.innerHTML = '<p>Arrastra para girar · Pellizca para acercar</p><div role="group" aria-label="Distancia de la bolsa"><button type="button" data-zoom="out" aria-label="Alejar bolsa">−</button><button type="button" data-zoom="reset" aria-label="Restablecer bolsa">Centrar</button><button type="button" data-zoom="in" aria-label="Acercar bolsa">+</button></div>';
+  slot.append(controls);
+  controls.addEventListener('click', event => {
+    const action = event.target.closest('[data-zoom]')?.dataset.zoom;
+    if (!action) return;
+    event.stopPropagation();
+    if (action === 'reset') reset(); else changeZoom(action === 'in' ? 1.12 : 1 / 1.12);
   });
   return {
     sync(active) {
       const director = getDirector();
       const box = active ? director?.productOrigin(director.visibleProduct()) : null;
-      surface.hidden = !box;
-      if (!box) { stop(); return; }
-      // La zona permanece estable durante el arrastre y el cambio de material.
-      if (drag) return;
+      surface.hidden = controls.hidden = !box;
+      if (!box) { gestures.clear(); return; }
+      if (gestures.active()) return;
       const width = Math.max(110, box.width + 12), height = Math.max(150, box.height + 12);
       Object.assign(surface.style, { left: `${box.x - width / 2}px`, top: `${box.y - height / 2}px`, width: `${width}px`, height: `${height}px` });
     },

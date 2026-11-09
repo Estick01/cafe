@@ -55,7 +55,7 @@ export function initProducto() {
       entering = canvas.animate([{ transform: originTransform }, { transform: 'none' }], { duration: movimientoReducido() ? 0 : 760, easing: 'cubic-bezier(.2,.75,.2,1)', fill: 'both' });
       dialog.classList.add('producto-listo');
       controls.forEach(button => { button.disabled = false; });
-      status.textContent = 'Arrastra para girar · Abre la bolsa para ver los granos';
+      status.textContent = 'Arrastra para girar · Pellizca o usa la rueda para acercar';
     } catch (error) {
       console.error('[co2] Visor de producto no disponible', error);
       status.textContent = 'La vista 3D no está disponible. Puedes consultar la ficha y hacer tu pedido.';

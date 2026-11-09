@@ -8,3 +8,4 @@ __pycache__/
 /debug/verification.json
 /debug/product-verification.json
 /debug/shop-verification.json
+/.pages/
