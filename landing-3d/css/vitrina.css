@@ -1,0 +1,29 @@
+﻿.titular--vitrina { font-size: clamp(3.4rem, 6.8vw, 7.8rem); }
+.vitrina-texto { position: relative; z-index: 1; max-width: 52%; }
+.vitrina-texto .sobretitulo { margin-bottom: 28px; }
+.vitrina-texto .spec { margin-top: 26px; max-width: 35rem; }
+.vitrina-accion { position: absolute; bottom: 64px; left: var(--margen); max-width: 30rem; }
+.vitrina-sub { color: var(--crema-suave); font-size: 13px; line-height: 1.65; max-width: 42ch; margin-bottom: 20px; }
+.vitrina-sub strong { font-weight: 500; color: var(--crema); }
+.botones { display: flex; gap: 10px; flex-wrap: wrap; }
+.vitrina-accion .boton { padding: 0 20px; font-size: 10px; }
+.palabra-fondo--vitrina { right: 3vw; top: 19%; opacity: 0.3; }
+.scrub .vitrina-texto, .scrub .vitrina-accion { opacity: calc(1 - var(--salida, 0) * 0.5); }
+@media (max-width: 760px) {
+  .vitrina-texto { max-width: 100%; }
+  .titular--vitrina { font-size: clamp(3.1rem, 13vw, 5rem); }
+  .titular--vitrina .linea { display: inline; }
+  .titular--vitrina .linea > span { display: inline; }
+  .titular--vitrina .linea--acento { display: block; }
+  .vitrina-texto .sobretitulo { margin-bottom: 18px; font-size: 9px; }
+  .vitrina-texto .spec { margin-top: 16px; font-size: 9px; letter-spacing: 0.12em; }
+  .vitrina-accion { bottom: 55px; right: var(--margen); }
+  .vitrina-sub { font-size: 11px; max-width: 40ch; margin-bottom: 12px; }
+  .vitrina-accion .boton { min-height: 44px; padding-inline: 16px; font-size: 9px; }
+  .palabra-fondo--vitrina { top: 40%; }
+}
+@media (max-height: 650px) and (min-width: 761px) {
+  .titular--vitrina { font-size: 4.6rem; }
+  .vitrina-accion { bottom: 45px; }
+  .vitrina-sub { display: none; }
+}

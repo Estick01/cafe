@@ -1,491 +1,214 @@
-/*
- * Orquestacion: el scroll nativo es la unica fuente de verdad.
- * progress -> pose -> escena, capitulos, puntos e indicador, en cualquier direccion.
- * La misma estructura que la landing de imagenes; solo cambia el renderizador.
- */
-import { CONFIG } from './config.js';
-import { initialDprState, nextDprState } from './logic/adaptive.js';
-import { aromaAnchors } from './logic/aroma.js';
-import { TOTAL_DURATION, sceneAt, scrollForTotalTime, totalTimeForProgress } from './logic/epilogue.js';
-import { progressAt } from './logic/progress.js';
-import { createAromaChips } from './ui/aromas.js';
+﻿import { CONFIG } from './config.js';
+import { MARCA } from './marca.js';
+import { createStoryMap, duracionesInmersion, sectionHeightsVh, knotsFromSections, gForScrollKnots, scrollForGKnots } from './logic/story.js';
+import { AUTOPLAY_IDLE, startAutoplay, stepAutoplay, interruptAutoplay, releaseAutoplay, renderedG, needsScrollSync } from './logic/autoplay.js';
+import { createSmoothScroll } from './smoothScroll.js';
 import { createLoader } from './ui/loader.js';
-import { initMenu } from './ui/menu.js';
-import { initDemoForm, initTastingCard } from './ui/secciones.js';
-
-const NOTICES = Object.freeze({
-  webgl: 'Tu navegador no pudo iniciar la animación 3D, pero aquí tienes la historia completa.',
-  assets: 'La animación no se pudo cargar, pero aquí tienes la historia completa.',
-});
-
-/* Margen para que una pantalla de 60 Hz no pierda fotogramas por redondeo del temporizador. */
-const FRAME_SLACK_MS = 3;
+import { initialDprState, nextDprState } from './logic/adaptive.js';
+import { createShopInteraction } from './ui/shopInteraction.js';
 
 const root = document.documentElement;
-const params = new URLSearchParams(window.location.search);
-/* Solo en modo de pruebas (?capturas): permite ensayar los modos de reserva sin tocar el sistema. */
+const params = new URLSearchParams(location.search);
 const forced = params.has('capturas') ? params.get('forzar') : null;
-const realReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-const reducedMotion = forced === 'reducido' ? { matches: true, addEventListener() {} } : realReducedMotion;
-const sideLayout = window.matchMedia(CONFIG.sideLayoutQuery);
-
-const dom = {
-  story: document.getElementById('historia'),
-  stage: document.getElementById('escenario'),
-  canvas: document.getElementById('lienzo'),
-  poster: document.getElementById('poster'),
-  hint: document.getElementById('indicacion'),
-  loading: document.getElementById('carga'),
-  notice: document.getElementById('aviso'),
-  noticeText: document.getElementById('aviso-texto'),
-  retry: document.getElementById('reintentar'),
-  indicatorNumber: document.getElementById('indicador-numero'),
-  indicatorTitle: document.getElementById('indicador-titulo'),
-  indicatorBar: document.getElementById('indicador-barra'),
-  menuButton: document.getElementById('menu-boton'),
-  menuPanel: document.getElementById('menu-panel'),
-  tastingCard: document.querySelector('.ficha-tarjeta'),
-  bookingForm: document.getElementById('reserva'),
-  bookingStatus: document.getElementById('reserva-estado'),
-  aromas: document.getElementById('aromas'),
-};
-const aromaChips = createAromaChips(dom.aromas);
-/* Las etiquetas de aroma solo en pantallas holgadas y con la calidad alta. */
-const roomyScreen = window.matchMedia(CONFIG.aromaChipsQuery);
-
-const chapters = CONFIG.chapters.map((chapter) => ({
-  ...chapter,
-  element: document.getElementById(chapter.id),
-  dot: document.querySelector(`.puntos a[href="#${chapter.id}"]`),
-}));
-const chapterIds = new Set(chapters.map((chapter) => chapter.id));
-
-const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-
-const state = {
-  stage: null,
-  measure: { top: 0, range: 1, width: 0, height: 0 },
-  lastProgress: -1,
-  lastChapterIndex: -1,
-  lastActivity: 0,
-  lastFrameTime: 0,
-  lastRenderTime: 0,
-  renderCount: 0,
-  frameRequest: 0,
-  visible: true,
-  needsRender: true,
-  skipFrame: false,
-  dpr: initialDprState(1),
-  failed: false,
-  hasPainted: false,
-  autoStartedAt: null,
-  autoProgress: null,
-  autoFinished: false,
-  userScrolled: false,
-};
-
-const isScrubbing = () => root.classList.contains('scrub');
-
-/* Sin progreso durante este tiempo, la carga se da por atascada y se ofrece reintentar. */
-const LOAD_STALL_MS = 20000;
+const motion = matchMedia('(prefers-reduced-motion: reduce)');
+const side = matchMedia(CONFIG.sideLayoutQuery);
+const reduced = () => motion.matches || forced === 'reducido';
+const canvas = document.getElementById('lienzo');
+const container = document.getElementById('escenario');
+const sections = CONFIG.sections.map(id => document.getElementById(id));
+document.querySelector('#tienda .fijo').setAttribute('data-lenis-prevent', '');
 const loader = createLoader(root);
-const loading = { controller: null, lastProgressAt: 0, stallTimer: 0, stage: null };
+const smooth = createSmoothScroll({ enabled: !reduced(), options: CONFIG.smoothScroll });
+let map = createStoryMap();
+let stage, director, controller, stallTimer;
+let knots = [], frame = 0, lastDraw = 0, currentG = 0, dirty = true, failed = false;
+let autoplay = AUTOPLAY_IDLE, entered = false, interacted = false, lastProgress = 0;
+let resolution = null;
+let inspecting = false;
+const shopControls = createShopInteraction(() => director, () => { dirty = true; wake(); });
 
-function finishPreload(painted = false) {
-  if (loader.isFinished()) return;
+function finish(painted = false) {
   clearTimeout(window.__cafeLoadWatchdog);
-  clearInterval(loading.stallTimer);
-  dom.stage.setAttribute('aria-busy', 'false');
+  clearInterval(stallTimer);
+  container.setAttribute('aria-busy', 'false');
+  document.getElementById('carga').classList.add('oculto');
+  if (painted) root.classList.add('frame-pintado');
   loader.finish({ painted });
 }
-
-/* ---------- Medidas ---------- */
-
-function measureLayout() {
-  const rect = dom.story.getBoundingClientRect();
-  const stageRect = dom.stage.getBoundingClientRect();
-  state.measure = {
-    top: rect.top + window.scrollY,
-    range: Math.max(1, rect.height - stageRect.height),
-    width: stageRect.width,
-    height: stageRect.height,
-  };
-}
-
-/* ---------- Capitulos e indicador ---------- */
-
-function chapterIndexAt(time) {
-  const found = chapters.findIndex((chapter) => time < chapter.end);
-  return found === -1 ? chapters.length - 1 : found;
-}
-
-function chapterOpacity(chapter, index, time) {
-  const fade = CONFIG.chapterFade;
-  const fadeIn = index === 0 ? 1 : clamp((time - chapter.start) / fade, 0, 1);
-  const fadeOut = index === chapters.length - 1 ? 1 : clamp((chapter.end - time) / fade, 0, 1);
-  return Math.min(fadeIn, fadeOut);
-}
-
-/*
- * Solo la tarjeta visible queda con visibility: visible; las demas no se componen, asi el
- * backdrop-filter del vidrio cuesta una sola capa. --avance llena el hilo de la etapa.
- */
-function renderChapters(time) {
-  chapters.forEach((chapter, index) => {
-    const opacity = chapterOpacity(chapter, index, time);
-    const direction = time < chapter.start + CONFIG.chapterFade ? 1 : -1;
-    const { style } = chapter.element;
-    style.opacity = opacity.toFixed(3);
-    style.visibility = opacity > 0.001 ? 'visible' : 'hidden';
-    style.setProperty('--desplazamiento', `${(direction * (1 - opacity) * CONFIG.chapterShiftPx).toFixed(1)}px`);
-    style.setProperty('--avance', clamp((time - chapter.start) / (chapter.end - chapter.start), 0, 1).toFixed(3));
-  });
-}
-
-function renderActiveChapter(index) {
-  if (index === state.lastChapterIndex) return;
-  state.lastChapterIndex = index;
-  chapters.forEach((chapter, i) => {
-    if (i === index) chapter.dot.setAttribute('aria-current', 'step');
-    else chapter.dot.removeAttribute('aria-current');
-  });
-  dom.indicatorNumber.textContent = String(index + 1).padStart(2, '0');
-  dom.indicatorTitle.textContent = chapters[index].element.dataset.titulo;
-}
-
-function renderInterface(progress) {
-  const time = totalTimeForProgress(progress);
-  renderChapters(time);
-  renderActiveChapter(chapterIndexAt(time));
-  dom.indicatorBar.style.transform = `scaleY(${progress.toFixed(4)})`;
-  dom.hint.classList.toggle('oculto', progress > CONFIG.scrollHintUntil);
-  dom.stage.dataset.progress = progress.toFixed(4);
-}
-
-/* ---------- Bucle de dibujo ---------- */
-
-function markPainted() {
-  if (state.failed) return;
-  if (state.hasPainted) return;
-  state.hasPainted = true;
-  root.classList.add('frame-pintado');
-  finishPreload(true);
-}
-
-function adaptResolution(frameMs) {
-  const next = nextDprState(state.dpr, frameMs, CONFIG.dpr);
-  if (next.dpr !== state.dpr.dpr) state.stage.setPixelRatio(next.dpr);
-  state.dpr = next;
-}
-
-function tick(now) {
-  state.frameRequest = 0;
-  if (!isScrubbing() || !state.stage || !state.visible) return;
-  scheduleTick();
-
-  const delta = state.lastFrameTime ? now - state.lastFrameTime : 16;
-  state.lastFrameTime = now;
-
-  const progress = progressAt(window.scrollY, state.measure);
-  const automatic = state.autoProgress !== null;
-  const currentProgress = automatic ? state.autoProgress : progress;
-  const scrolled = currentProgress !== state.lastProgress;
-  if (scrolled) {
-    state.lastProgress = currentProgress;
-    state.lastActivity = now;
-    state.needsRender = true;
-    renderInterface(currentProgress);
-  }
-
-  const { pose, epilogue } = sceneAt(totalTimeForProgress(currentProgress));
-  const animated = state.stage.tickAmbient(delta, pose);
-  const idle = now - state.lastActivity > CONFIG.idleAfterMs;
-  // Parado, el movimiento ambiental va a la mitad de frecuencia para no cargar la GPU sin motivo.
-  state.skipFrame = idle && !state.skipFrame;
-  if (!state.needsRender && (!animated || state.skipFrame) && !automatic) return;
-  const sinceRender = now - state.lastRenderTime;
-  if (sinceRender < 1000 / CONFIG.maxFps - FRAME_SLACK_MS) return;
-
-  const painted = state.stage.render(pose, sideLayout.matches, epilogue);
-  renderAromaChips(epilogue);
-  state.lastRenderTime = now;
-  state.renderCount += 1;
-  state.needsRender = false;
-  if (painted !== false) markPainted();
-  if (!idle && !state.stage.setVisible) adaptResolution(sinceRender);
-  if (automatic) {
-    state.autoProgress = Math.min(1, Math.max(0, (now - state.autoStartedAt) / (TOTAL_DURATION * 1000)));
-    state.needsRender = true;
-    if (state.autoProgress >= 1) {
-      state.autoProgress = null;
-      state.autoFinished = true;
-      state.lastProgress = -1;
-    }
-  }
-}
-
-/* Etiquetas Panela, Mandarina y Cacao sobre sus nubes de aroma, con la camara del ultimo render. */
-function renderAromaChips(epilogue) {
-  const enabled = epilogue.active && !epilogue.staticView && roomyScreen.matches
-    && state.stage.getQuality?.() !== 'low' && Boolean(state.stage.projectToScreen);
-  const anchors = enabled ? aromaAnchors(epilogue.time, epilogue.surfaceZ) : [];
-  aromaChips.update(anchors, state.stage.projectToScreen, enabled, state.measure.width);
-}
-
-function scheduleTick() {
-  if (!state.frameRequest) state.frameRequest = requestAnimationFrame(tick);
-}
-
-function wake() {
-  state.lastActivity = performance.now();
-  state.lastFrameTime = 0;
-  scheduleTick();
-}
-
-/* ---------- Modos ---------- */
-
-function showNotice(reason) {
-  dom.noticeText.textContent = NOTICES[reason];
-  dom.notice.hidden = false;
-}
-
-function enterFallback(reason, error) {
-  console.error(`[vetamora] Modo estatico (${reason})`, error);
-  state.failed = true;
-  finishPreload();
-  stopScrubbing();
-  root.classList.remove('estatico-3d');
-  dom.poster.src = CONFIG.assets.posterFinal;
-  dom.loading.classList.add('oculto');
-  showNotice(reason);
-}
-
-function stopScrubbing() {
+function fallback(error, message = 'La animación no está disponible. Puedes explorar los lotes y hacer tu pedido.') {
+  console.error('[co2] Escena no disponible', error);
+  failed = true; controller?.abort(); smooth.destroy();
+  cancelAnimationFrame(frame); frame = 0;
   root.classList.remove('scrub', 'frame-pintado');
-  aromaChips.hide();
-  state.hasPainted = false;
-  chapters.forEach(({ element }) => {
-    element.style.removeProperty('opacity');
-    element.style.removeProperty('visibility');
-    element.style.removeProperty('--desplazamiento');
-    element.style.removeProperty('--avance');
-  });
+  sections.forEach(el => { el.style.removeProperty('height'); el.inert = false; });
+  document.getElementById('aviso-texto').textContent = message;
+  document.getElementById('aviso').hidden = false;
+  finish();
 }
-
-/* Movimiento reducido: el estado final, una sola vez, sin scrub ni bucle. */
-function renderStaticFinal() {
-  if (!state.stage) return;
-  root.classList.add('estatico-3d');
-  const { width, height } = dom.canvas.getBoundingClientRect();
-  if (width < 1 || height < 1) return;
-  state.stage.setSize(width, height);
-  // Composicion final quieta: la cuchara en reposo y el aroma detenido.
-  const { pose, epilogue } = sceneAt(TOTAL_DURATION, { staticView: true });
-  const painted = state.stage.renderStatic(pose, epilogue);
-  if (painted !== false) markPainted();
+function measure() {
+  if (failed || reduced()) return;
+  const heights = sectionHeightsVh(map, CONFIG.vhPerSecond);
+  sections.forEach(el => { el.style.height = `${heights[el.id]}vh`; });
+  const tops = Object.fromEntries(sections.map(el => [el.id, el.getBoundingClientRect().top + scrollY]));
+  const last = sections.at(-1);
+  knots = knotsFromSections(map, tops, tops[last.id] + last.offsetHeight - innerHeight);
+  stage?.setSize(innerWidth, innerHeight);
+  if (resolution) stage.setPixelRatio(resolution.dpr);
+  director?.setSize(innerWidth, innerHeight, stage.getPixelRatio());
+  smooth.resize(); dirty = true; wake();
 }
-
-function syncMode() {
-  if (state.failed) return;
-  if (reducedMotion.matches) {
-    stopScrubbing();
-    state.stage?.setParallaxEnabled(false);
-    renderStaticFinal();
-    return;
-  }
-  root.classList.remove('estatico-3d');
-  root.classList.add('scrub');
-  state.stage?.setParallaxEnabled(true);
-  handleResize();
-  jumpToHashChapter();
-  const openedOnStoryStart = window.scrollY <= state.measure.top + 2
-    && !window.location.hash.startsWith('#cap-');
-  if (openedOnStoryStart && !state.userScrolled && !state.autoFinished) {
-    state.autoStartedAt = performance.now();
-    state.autoProgress = 0;
+function syncAutoplay() {
+  if (!needsScrollSync(autoplay)) return;
+  smooth.scrollTo(scrollForGKnots(autoplay.G, knots), { immediate: true });
+  autoplay = releaseAutoplay(autoplay, gForScrollKnots(scrollY, knots));
+}
+function tick(now) {
+  frame = 0;
+  if (failed || reduced() || document.hidden || inspecting) return;
+  smooth.raf(now);
+  if (director) {
+    autoplay = stepAutoplay(autoplay, now); syncAutoplay();
+    const G = renderedG(autoplay, gForScrollKnots(scrollY, knots));
+    const state = map.at(G);
+    const shopVisible = state.seccion === 'tienda' && scrollY < sections.at(-1).getBoundingClientRect().bottom + scrollY;
+    if ((dirty || shopVisible || Math.abs(G - currentG) > 0.00001) && now - lastDraw >= 1000 / CONFIG.maxFps - 3) {
+      try {
+        // La historia depende del scroll; la tienda mantiene granos y cambios de lote en movimiento.
+        const result = director.render(state, { time: G, lote: director.getSeleccion() });
+        const beyond = scrollY > knots.at(-1).y + innerHeight * 0.5;
+        document.dispatchEvent(new CustomEvent('historia:progreso', { detail: { ...state, anchors: beyond ? [] : result.anchors } }));
+        sections.forEach(el => { el.inert = el.id !== state.seccion; });
+        shopControls.sync(shopVisible);
+        container.dataset.progress = String(G / map.total);
+        if (result.painted) {
+          root.classList.add('frame-pintado');
+          if (!loader.isFinished()) finish(true);
+        }
+      } catch (error) { fallback(error); return; }
+      if (lastDraw && now - lastDraw < 100 && resolution) {
+        const next = nextDprState(resolution, now - lastDraw, CONFIG.dpr);
+        if (next.dpr !== resolution.dpr) {
+          stage.setPixelRatio(next.dpr);
+          director.setSize(innerWidth, innerHeight, next.dpr);
+        }
+        resolution = next;
+      }
+      currentG = G; lastDraw = now; dirty = false;
+    }
   }
   wake();
 }
-
-function handleResize() {
-  measureLayout();
-  if (!state.stage) return;
-  if (!isScrubbing()) {
-    if (reducedMotion.matches) renderStaticFinal();
-    return;
+function wake() {
+  if (!frame && !failed && !reduced() && !document.hidden && !inspecting) frame = requestAnimationFrame(tick);
+}
+function navigate(selector, immediate = false) {
+  const target = document.getElementById(selector.replace(/^#/, ''));
+  if (!target) return false;
+  autoplay = AUTOPLAY_IDLE; interacted = true;
+  const G = map.anclas[target.id];
+  smooth.scrollTo(Number.isFinite(G) ? scrollForGKnots(G, knots) : target.getBoundingClientRect().top + scrollY, { immediate });
+  dirty = true; wake(); return true;
+}
+function syncMode() {
+  if (failed) return;
+  root.classList.toggle('scrub', !reduced());
+  smooth.setEnabled(!reduced()); stage?.setParallaxEnabled(false);
+  if (reduced()) {
+    cancelAnimationFrame(frame); frame = 0; autoplay = AUTOPLAY_IDLE;
+    sections.forEach(el => { el.style.removeProperty('height'); el.inert = false; });
+    finish(); return;
   }
-  state.stage.setSize(state.measure.width, state.measure.height);
-  state.lastProgress = -1;
-  state.needsRender = true;
-  scheduleTick();
-}
-
-/* ---------- Navegacion ---------- */
-
-function jumpToHashChapter() {
-  const id = window.location.hash.slice(1);
-  if (!chapterIds.has(id)) return;
-  const chapter = chapters.find((item) => item.id === id);
-  window.scrollTo({ top: scrollForTotalTime(chapter.anchor, state.measure), behavior: 'instant' });
-}
-
-function handleChapterLinks(event) {
-  const link = event.target.closest('a[href^="#cap-"]');
-  if (!link || !isScrubbing()) return;
-  const id = link.getAttribute('href').slice(1);
-  if (!chapterIds.has(id)) return;
-  event.preventDefault();
-  const chapter = chapters.find((item) => item.id === id);
-  window.scrollTo({ top: scrollForTotalTime(chapter.anchor, state.measure) });
-}
-
-/* ---------- Carga ---------- */
-
-function showLoadProgress(fraction, phase = 'download') {
-  loading.lastProgressAt = performance.now();
-  dom.loading.textContent = `Preparando animación ${Math.round(fraction * 100)} %`;
-  loader.setProgress(fraction, phase);
-}
-
-/* Error de descarga con la pantalla de carga aun visible: se ofrece reintentar sin recargar. */
-function showLoadError(error) {
-  console.error('[vetamora] La carga de la escena fallo', error);
-  clearInterval(loading.stallTimer);
-  loading.controller?.abort();
-  loader.showError();
-}
-
-function watchStall() {
-  clearInterval(loading.stallTimer);
-  loading.lastProgressAt = performance.now();
-  loading.stallTimer = setInterval(() => {
-    if (performance.now() - loading.lastProgressAt < LOAD_STALL_MS) return;
-    showLoadError(new Error('La descarga no avanza'));
-  }, 2000);
-}
-
-function supportsWebGL2() {
-  try {
-    return Boolean(document.createElement('canvas').getContext('webgl2'));
-  } catch {
-    return false;
-  }
-}
-
-async function loadStage() {
-  const useSequence = CONFIG.renderer === 'sequence' || params.get('render') === 'sequence';
-  if (!useSequence && (forced === 'sinwebgl' || !supportsWebGL2())) {
-    enterFallback('webgl', new Error('WebGL2 no disponible'));
-    return;
-  }
-  let stage = loading.stage;
-  loading.controller = new AbortController();
-  watchStall();
-  try {
-    if (!stage) {
-      const { createStage } = await import(useSequence ? './scene/sequenceStage.js' : './scene/stage.js');
-      stage = createStage(dom.canvas, CONFIG, {
-        onFrame: markPainted,
-        onError: error => enterFallback('assets', error),
-      });
-      loading.stage = stage;
-    }
-    stage.setSize(state.measure.width || window.innerWidth, state.measure.height || window.innerHeight);
-    if (forced === 'precarga') { // solo pruebas: deja la pantalla de carga quieta a medio camino
-      clearInterval(loading.stallTimer);
-      showLoadProgress(Number(params.get('progreso') ?? 0.46), 'download');
-      return;
-    }
-    await stage.load(forced === 'sinassets' ? 'assets/models/no-existe.json'
-      : useSequence ? 'assets/sequence/manifest.json' : CONFIG.assets.manifest, showLoadProgress,
-    { signal: loading.controller.signal });
-    clearInterval(loading.stallTimer);
-    if (state.failed) { stage.dispose?.(); return; }
-    dom.canvas.addEventListener('webglcontextlost', (event) => {
-      event.preventDefault();
-      enterFallback('webgl', new Error('Contexto WebGL perdido'));
+  measure();
+  if (!entered && director) {
+    entered = true;
+    if (location.hash) navigate(location.hash, true);
+    else if (!interacted && scrollY < 2) autoplay = startAutoplay(performance.now(), {
+      toG: CONFIG.autoplay.toG, seconds: CONFIG.autoplay.toG * CONFIG.autoplay.secondsPerG,
     });
-    state.stage = stage;
-    state.dpr = initialDprState(stage.getPixelRatio());
-    dom.loading.classList.add('oculto');
-    syncMode();
-    // Una URL con ancla puede abrir fuera de la historia: dibujar sin esperar al scroll.
-    if (!state.hasPainted && !reducedMotion.matches) {
-      const { pose, epilogue } = sceneAt(totalTimeForProgress(progressAt(window.scrollY, state.measure)));
-      if (stage.render(pose, sideLayout.matches, epilogue) !== false) markPainted();
-    }
-    if (params.has('capturas') && stage.captureReference) {
-      const { installCaptures } = await import('./debug/capturas.js');
-      installCaptures(stage, () => ({ dpr: state.dpr.dpr, renders: state.renderCount }));
-    }
+  }
+  wake();
+}
+async function load() {
+  if (reduced()) { syncMode(); return; }
+  controller = new AbortController(); lastProgress = performance.now();
+  stallTimer = setInterval(() => {
+    if (performance.now() - lastProgress > 30000) { controller.abort(); clearInterval(stallTimer); loader.showError(); }
+  }, 2000);
+  try {
+    if (forced === 'sinwebgl') throw Object.assign(new Error('WebGL desactivado para pruebas'), { code: 'webgl' });
+    const [{ createStage }, { createDirector, loadModules }] = await Promise.all([
+      import('./scene/stage.js'), import('./scene/director.js'),
+    ]);
+    stage = createStage(canvas, CONFIG); stage.setSize(innerWidth, innerHeight);
+    resolution = initialDprState(stage.getPixelRatio());
+    if (forced === 'precarga') { clearInterval(stallTimer); loader.setProgress(0.46); return; }
+    const [modules] = await Promise.all([
+      loadModules(),
+      stage.load(forced === 'sinassets' ? 'assets/models/no-existe.json' : CONFIG.assets.manifest,
+        (fraction, phase) => { lastProgress = performance.now(); loader.setProgress(fraction, phase); }, { signal: controller.signal }),
+    ]);
+    if (failed || controller.signal.aborted) return;
+    clearInterval(stallTimer);
+    map = createStoryMap(duracionesInmersion(modules.inmersion?.INMERSION_DURACION));
+    director = createDirector({ stage, modules, marca: MARCA, quality: stage.getQuality(), sideLayout: () => side.matches });
+    document.dispatchEvent(new CustomEvent('tienda:consultar')); syncMode();
+    if (params.has('capturas')) window.__co2 = {
+      map, stage, director,
+      go: G => { autoplay = AUTOPLAY_IDLE; smooth.scrollTo(scrollForGKnots(G, knots), { immediate: true }); dirty = true; wake(); },
+      state: () => ({ G: currentG, autoplay: autoplay.phase, modules: director.modules() }),
+    };
   } catch (error) {
-    clearInterval(loading.stallTimer);
-    if (state.failed) return;
-    // Sin WebGL no hay reintento posible; un fallo de red, mientras se ve la carga, si.
-    if (error?.code !== 'webgl' && !loader.isFinished()) showLoadError(error);
-    else enterFallback(error?.code === 'webgl' ? 'webgl' : 'assets', error);
+    clearInterval(stallTimer);
+    if (failed) return;
+    if (error.code === 'webgl') fallback(error);
+    else { console.error('[co2] Error de carga', error); loader.showError(); }
   }
 }
-
-/* ---------- Arranque ---------- */
-
-function init() {
-  if (root.classList.contains('cargando')) dom.stage.setAttribute('aria-busy', 'true');
-  // El modulo arranco: la vigilancia de la pagina deja paso a la del propio cargador (watchStall).
-  clearTimeout(window.__cafeLoadWatchdog);
-  window.addEventListener('cafe-load-timeout', () => {
-    if (!loader.isFinished()) enterFallback('assets', new Error('Tiempo de carga agotado'));
-  }, { once: true });
-  loader.onRetry(() => {
-    // Un modulo que no llego a importarse queda fallido en esta pagina: solo recargar lo arregla.
-    if (!loading.stage) {
-      window.location.reload();
-      return;
-    }
-    loader.resetForRetry();
-    loadStage();
-  });
-  loader.onSkip(() => {
-    loading.controller?.abort();
-    enterFallback('assets', new Error('El visitante eligio la version estatica'));
-    dom.noticeText.textContent = 'Estás viendo la versión sin animación.';
-  });
-  dom.poster.addEventListener('error', () => dom.poster.classList.add('roto'), { once: true });
-  dom.retry.addEventListener('click', () => window.location.reload());
-  document.addEventListener('click', handleChapterLinks);
-  window.addEventListener('scroll', () => {
-    state.userScrolled = true;
-    state.autoFinished = true;
-    state.autoProgress = null;
-    scheduleTick();
-  }, { passive: true });
-  window.addEventListener('resize', handleResize);
-  window.addEventListener('load', handleResize);
-  sideLayout.addEventListener('change', handleResize);
-  reducedMotion.addEventListener('change', syncMode);
-  document.addEventListener('visibilitychange', () => {
-    state.stage?.setVisible?.(!document.hidden && state.visible);
-    if (!document.hidden) wake();
-  });
-  window.addEventListener('pointermove', () => {
-    state.lastActivity = performance.now();
-  }, { passive: true });
-  if (document.fonts?.ready) document.fonts.ready.then(handleResize);
-  new ResizeObserver(handleResize).observe(dom.stage);
-  // Fuera de la historia no se dibuja nada: la GPU descansa en la parte de pedido.
-  new IntersectionObserver(([entry]) => {
-    state.visible = entry.isIntersecting;
-    state.stage?.setVisible?.(state.visible && !document.hidden);
-    if (state.visible) wake();
-  }).observe(dom.story);
-  window.addEventListener('pagehide', event => { if (!event.persisted) state.stage?.dispose?.(); });
-  dom.story.style.setProperty('--altura-historia', `${CONFIG.scrollVh}vh`);
-  initMenu({ button: dom.menuButton, panel: dom.menuPanel });
-  initTastingCard(dom.tastingCard);
-  initDemoForm(dom.bookingForm, dom.bookingStatus);
-  measureLayout();
-  renderInterface(0);
-  loadStage();
-}
-
-init();
+clearTimeout(window.__cafeLoadWatchdog);
+loader.onRetry(() => location.reload());
+loader.onSkip(() => fallback(new Error('Vista estática solicitada'), 'Estás viendo la versión sin animación.'));
+document.getElementById('reintentar').addEventListener('click', () => location.reload());
+canvas.addEventListener('webglcontextlost', event => { event.preventDefault(); fallback(new Error('Contexto WebGL perdido')); });
+function interrupt() { interacted = true; autoplay = interruptAutoplay(autoplay); syncAutoplay(); }
+for (const event of ['wheel', 'touchstart', 'pointerdown']) window.addEventListener(event, interrupt, { passive: true });
+window.addEventListener('keydown', event => { if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '].includes(event.key)) interrupt(); });
+window.addEventListener('scroll', () => { dirty = true; wake(); }, { passive: true });
+window.addEventListener('resize', measure);
+window.addEventListener('hashchange', () => { if (!failed && !reduced()) navigate(location.hash, true); });
+document.addEventListener('visibilitychange', wake);
+motion.addEventListener('change', () => { if (!stage && !reduced()) load(); else syncMode(); });
+document.fonts?.ready.then(measure);
+document.addEventListener('click', event => {
+  const link = event.target.closest('a[href^="#"]');
+  if (!link || failed || reduced() || event.ctrlKey || event.metaKey) return;
+  if (navigate(link.getAttribute('href'))) { event.preventDefault(); history.replaceState(null, '', link.getAttribute('href')); }
+});
+document.addEventListener('ui:navegar', event => {
+  if (!failed && !reduced() && navigate(event.detail.destino)) event.preventDefault();
+});
+document.addEventListener('tienda:seleccion', event => { director?.setSeleccion(event.detail.index); dirty = true; wake(); });
+document.addEventListener('producto:estado', event => {
+  inspecting = event.detail.abierto;
+  if (inspecting) { interrupt(); cancelAnimationFrame(frame); frame = 0; }
+  else { dirty = true; wake(); }
+});
+document.addEventListener('producto:preparar', event => { event.detail.origin = director?.productOrigin(event.detail.index) ?? null; });
+let productPointer = null;
+document.addEventListener('pointerdown', event => { productPointer = { x: event.clientX, y: event.clientY }; }, { passive: true });
+document.addEventListener('click', event => {
+  if (inspecting || failed || reduced() || !productPointer || event.target.closest('a, button, input, dialog, .ficha, .selector, [data-shop-drag]')) return;
+  if (map.at(currentG).seccion === 'tienda') return;
+  if (Math.hypot(event.clientX - productPointer.x, event.clientY - productPointer.y) > 8) return;
+  const index = director?.pickProduct(event.clientX, event.clientY) ?? -1;
+  if (index >= 0) document.dispatchEvent(new CustomEvent('producto:abrir', { detail: { index } }));
+});
+document.addEventListener('pointermove', event => {
+  const eligible = !inspecting && !failed && !reduced() && !event.target.closest('a, button, input, dialog, .ficha, .selector');
+  document.body.classList.toggle('bolsa-seleccionable', eligible && (director?.pickProduct(event.clientX, event.clientY) ?? -1) >= 0);
+}, { passive: true });
+window.addEventListener('pagehide', event => {
+  if (event.persisted) return;
+  controller?.abort(); smooth.destroy(); director?.dispose(); stage?.three.renderer.dispose();
+  clearInterval(stallTimer); cancelAnimationFrame(frame);
+});
+measure(); load();

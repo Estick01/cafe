@@ -1,0 +1,22 @@
+﻿.titular--beat { font-size: clamp(3.5rem, 7.4vw, 9rem); }
+.historia-numero { position: absolute; top: 17%; right: var(--margen); font: 400 6rem/1 var(--display); color: #ffffff16; }
+.beats { position: relative; }
+.beat { padding: 50px 0; }
+.beat .spec { margin-top: 28px; }
+.scrub .beats { position: absolute; inset: 34% var(--margen) auto; }
+.scrub .beat { position: absolute; top: 0; left: 0; padding: 0; visibility: hidden; opacity: calc(var(--entra, 0) * (1 - var(--sale, 0))); transform: translateY(calc((1 - var(--entra, 0)) * 24px)); }
+.scrub .beat.activo { visibility: visible; }
+.historia-riel { position: absolute; bottom: 40px; left: var(--margen); right: var(--margen); height: 1px; background: var(--linea); }
+.historia-riel span { display: block; height: 100%; background: var(--acento); transform: scaleX(var(--p, 0)); transform-origin: left; }
+.palabra-fondo--crema, .palabra-fondo--origen { top: 30%; left: 50%; transform: translateX(-50%); font-size: clamp(5rem, 22vw, 25rem); }
+.palabra-fondo--crema { opacity: var(--crema, 1); }
+.palabra-fondo--origen { opacity: var(--origen, 0); }
+.inmersion-linea { position: absolute; bottom: 18%; left: var(--margen); opacity: var(--linea, 1); }
+.inmersion-texto { display: block; margin-top: 18px; font-size: clamp(1.3rem, 3vw, 3rem); }
+html:not(.scrub) .capitulo--inmersion { display: none; }
+@media (max-width: 760px) {
+  .scrub .beats { top: auto; bottom: 27%; }
+  .titular--beat { font-size: clamp(3rem, 12vw, 5rem); }
+  .beat .spec { margin-top: 16px; font-size: 9px; }
+  .historia-numero { top: 18%; font-size: 4rem; }
+}

@@ -1,0 +1,19 @@
+﻿.laboratorio { position: relative; background: var(--fondo); border-top: 1px solid var(--linea); padding: 110px var(--margen); overflow: hidden; }
+.laboratorio-interior { max-width: 1300px; margin: auto; position: relative; }
+.laboratorio-cabeza { max-width: 780px; position: relative; }
+.laboratorio-cabeza .sobretitulo { margin-bottom: 28px; }
+.laboratorio-entrada { max-width: 48ch; margin-top: 28px; color: var(--crema-suave); }
+.palabra-fondo--lab { top: 30px; right: 0; opacity: 0.2; }
+.pilares { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 70px; }
+.pilar { padding-top: 20px; border-top: 1px solid var(--linea-fuerte); }
+.pilar-num { font-size: 11px; color: var(--acento-texto); }
+.pilar-titulo { font: 400 2rem var(--display); text-transform: uppercase; margin-block: 20px 12px; }
+.pilar p { font-size: 13px; color: var(--crema-suave); max-width: 34ch; }
+.laboratorio-accion { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 50px; }
+.pie { position: relative; z-index: 2; background: var(--fondo); border-top: 1px solid var(--linea); padding: 36px var(--margen); }
+.pie-interior { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 28px; }
+.pie-enlaces { display: flex; gap: 24px; font-size: 12px; }
+.pie-enlaces a { text-decoration: none; }
+.pie-legal, .pie-muestra { font-size: 10px; color: var(--crema-tenue); }
+.pie-muestra { flex-basis: 100%; }
+@media (max-width: 760px) { .laboratorio { padding-block: 80px; } .pilares { grid-template-columns: 1fr; gap: 30px; margin-top: 40px; } .laboratorio-entrada { font-size: 14px; } .pie-enlaces { flex-wrap: wrap; } }

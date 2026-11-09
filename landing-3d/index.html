@@ -3,17 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Vetamora · El arte de la catación</title>
-  <meta name="description" content="Vetamora es una marca ficticia de café de especialidad. Desliza y recorre las etapas de una catación profesional, del grano al sorbo.">
-  <meta name="theme-color" content="#0c0a09">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%230c0a09'/%3E%3Ccircle cx='20' cy='20' r='16.5' fill='none' stroke='%23c9935f' stroke-width='1.2'/%3E%3Cpath d='M12.5 12.5 20 28l7.5-15.5' fill='none' stroke='%23f3ead9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <title>CO2 Coffee Lab · Café de especialidad en Pasto</title>
+  <meta name="description" content="CO2 Coffee Lab: café de especialidad, tostadores y laboratorio de café en Pasto, Nariño. Cafés colombianos de origen, lotes exclusivos.">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%230a0a0a'/%3E%3Cpath d='M12 15h13v6a6.5 6.5 0 0 1-13 0z M25 17h2.5a2.5 2.5 0 0 1 0 5H25' fill='none' stroke='%23f4f1ec' stroke-width='1.8' stroke-linejoin='round'/%3E%3Cpath d='M11 30h16' stroke='%23c8202f' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
   <script>
     (function () {
       var root = document.documentElement;
       root.classList.add('js', 'cargando');
       // Si el modulo de la app no llega a arrancar, la pagina sigue siendo accesible.
       window.__cafeLoadWatchdog = setTimeout(function () {
-        root.classList.remove('cargando');
+        root.classList.remove('cargando', 'scrub');
         window.dispatchEvent(new Event('cafe-load-timeout'));
       }, 45000);
       /* Sin JS o con movimiento reducido, la página queda en su forma estática. */
@@ -35,14 +35,18 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600&display=swap">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/vidrio.css">
   <link rel="stylesheet" href="css/precarga.css">
   <link rel="stylesheet" href="css/navegacion.css">
   <link rel="stylesheet" href="css/escena.css">
-  <link rel="stylesheet" href="css/secciones.css">
+  <link rel="stylesheet" href="css/vitrina.css">
+  <link rel="stylesheet" href="css/historia.css">
+  <link rel="stylesheet" href="css/tienda.css">
+  <link rel="stylesheet" href="css/laboratorio.css">
+  <link rel="stylesheet" href="css/producto.css">
   <script type="importmap">
     {
       "imports": {
@@ -62,19 +66,18 @@
     </filter>
   </svg>
 
+  <!-- Pantalla de carga: ids usados por src/ui/loader.js (progreso, error y reintento). -->
   <div id="precarga" class="precarga" role="dialog" aria-modal="true" aria-labelledby="precarga-titulo" aria-describedby="precarga-estado">
-    <div class="precarga-contenido vidrio">
+    <div class="precarga-contenido">
       <div class="precarga-sello" aria-hidden="true">
-        <svg viewBox="0 0 96 96" width="96" height="96" focusable="false">
-          <circle class="precarga-aro-fondo" cx="48" cy="48" r="45"/>
-          <circle class="precarga-aro" cx="48" cy="48" r="45" pathLength="1" transform="rotate(-90 48 48)"/>
-          <circle cx="48" cy="48" r="33" fill="none" stroke="currentColor" stroke-opacity="0.35" stroke-width="1"/>
-          <path class="precarga-v" pathLength="1" d="M36 35.5 48 61l12-25.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path class="precarga-v" pathLength="1" d="M48 38c-3.2 4.2 3.2 7.6 0 11.8" fill="none" stroke="var(--acento)" stroke-width="1.4" stroke-linecap="round"/>
+        <svg viewBox="0 0 120 120" width="120" height="120" focusable="false">
+          <circle class="precarga-aro-fondo" cx="60" cy="60" r="56"/>
+          <circle class="precarga-aro" cx="60" cy="60" r="56" pathLength="1" transform="rotate(-90 60 60)"/>
         </svg>
+        <span class="precarga-insignia" data-insignia></span>
       </div>
-      <p class="precarga-marca">Vetamora</p>
-      <h2 id="precarga-titulo">Preparamos la mesa de cata.</h2>
+      <p class="precarga-marca" data-marca-nombre>CO2 Coffee Lab</p>
+      <h2 id="precarga-titulo">Calentando el agua a 93&nbsp;°C.</h2>
       <p id="precarga-estado" class="precarga-estado" role="status" aria-live="polite">Cargando la experiencia…</p>
       <div class="precarga-medida">
         <div id="precarga-progreso" class="precarga-riel" role="progressbar" aria-label="Carga de la experiencia" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0 %">
@@ -89,227 +92,260 @@
       <button id="precarga-saltar" class="precarga-saltar" type="button">Ver la página sin animación</button>
     </div>
   </div>
-  <a class="saltar" href="#reservar">Saltar a la reserva</a>
+  <a class="saltar" href="#tienda">Saltar a los lotes</a>
+
+  <!-- Escena 3D fija detrás de todas las secciones. El póster es la reserva sin WebGL. -->
+  <div id="escenario" class="escenario">
+    <div class="medio">
+      <picture>
+        <source srcset="assets/poster-final.webp" media="(prefers-reduced-motion: reduce)">
+        <img id="poster" class="poster" src="assets/poster-inicio.webp" width="640" height="360"
+             alt="" decoding="async">
+      </picture>
+      <canvas id="lienzo" class="lienzo" role="img"
+              aria-label="Animación 3D que avanza al deslizar: las bolsas de café giran en órbita, un chorro de café llena una taza, la cámara se sumerge en la crema y termina en la vitrina de lotes."></canvas>
+    </div>
+    <div class="velo" aria-hidden="true"></div>
+  </div>
+
+  <!-- Etiquetas flotantes de cada lote, colocadas desde los anclajes 3D (src/ui/etiquetas.js).
+       Decorativas: la tienda repite toda la información. -->
+  <div id="etiquetas-lotes" class="etiquetas" aria-hidden="true"></div>
 
   <header class="cabecera">
     <div class="nav-pildora vidrio vidrio--refracta">
-      <a class="marca" href="#historia" aria-label="Vetamora, volver al inicio">
-        <svg class="monograma" viewBox="0 0 40 40" width="32" height="32" aria-hidden="true" focusable="false">
-          <circle cx="20" cy="20" r="18.5" fill="none" stroke="currentColor" stroke-opacity="0.55" stroke-width="1"/>
-          <path d="M12.5 12.5 20 28l7.5-15.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M20 14.2c-2 2.6 2 4.8 0 7.4" fill="none" stroke="var(--acento)" stroke-width="1.3" stroke-linecap="round"/>
-        </svg>
-        <span class="marca-nombre" aria-hidden="true">Vetamora</span>
+      <a class="marca" href="#vitrina" data-marca-enlace>
+        <span class="logo" data-logo>CO2 Coffee Lab</span>
       </a>
-      <button id="menu-boton" class="menu-boton" type="button" aria-expanded="false" aria-controls="menu-panel">
-        <span class="menu-boton-texto">Menú</span>
-        <span class="menu-boton-icono" aria-hidden="true"></span>
-      </button>
-      <nav id="menu-panel" class="menu-panel" aria-label="Menú principal" hidden>
+      <nav id="menu-panel" class="menu-panel" aria-label="Menú principal">
         <ul>
-          <li><a href="#cap-1">La catación</a></li>
-          <li><a href="#ficha">Ficha de cata</a></li>
-          <li><a href="#origen">Origen</a></li>
-          <li><a class="menu-destacado" href="#reservar">Reservar</a></li>
+          <li><a href="#tienda" data-nav="tienda">Lotes</a></li>
+          <li><a href="#historia" data-nav="historia">Método</a></li>
+          <li><a href="#laboratorio" data-nav="laboratorio">Laboratorio</a></li>
+          <li class="menu-solo-movil"><a data-instagram target="_blank" rel="noopener noreferrer" hidden>Instagram<span class="sr"> (se abre en una pestaña nueva)</span></a></li>
         </ul>
       </nav>
+      <div class="nav-acciones">
+        <button id="buscar-boton" class="icono-boton" type="button" aria-expanded="false" aria-controls="buscador" aria-label="Buscar un lote">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="m15.5 15.5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <a class="icono-boton icono-boton--ig" data-instagram target="_blank" rel="noopener noreferrer" hidden>
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.3" cy="6.7" r="1.2" fill="currentColor"/></svg>
+          <span class="sr">Instagram (se abre en una pestaña nueva)</span>
+        </a>
+        <a class="boton boton--primario boton--pildora" href="#tienda">Pedir</a>
+        <button id="menu-boton" class="menu-boton" type="button" aria-expanded="false" aria-controls="menu-panel">
+          <span class="menu-boton-texto">Menú</span>
+          <span class="menu-boton-icono" aria-hidden="true"></span>
+        </button>
+      </div>
     </div>
+    <form id="buscador" class="buscador" role="search" hidden>
+      <label class="buscador-etiqueta" for="buscador-campo">Busca un lote por nombre, variedad o proceso</label>
+      <input id="buscador-campo" class="buscador-campo" type="search" autocomplete="off" spellcheck="false" placeholder="Ej.: Geisha, lavado">
+      <ul id="buscador-resultados" class="buscador-resultados" aria-label="Lotes encontrados"></ul>
+      <p id="buscador-estado" class="buscador-estado" role="status" aria-live="polite"></p>
+    </form>
   </header>
 
   <main>
-    <section id="historia" class="historia" aria-label="Las cinco etapas de una catación">
-      <div id="escenario" class="escenario">
-        <div class="medio">
-          <picture>
-            <source srcset="assets/poster-final.webp" media="(prefers-reduced-motion: reduce)">
-            <img id="poster" class="poster" src="assets/poster-inicio.webp" width="640" height="360"
-                 alt="Grano de café y taza de cerámica color crema sobre mármol casi negro" decoding="async">
-          </picture>
-          <canvas id="lienzo" class="lienzo" role="img"
-                  aria-label="Animación que avanza al deslizar: un grano de café flota, cae un chorro de café, aparece una taza de cerámica color crema, se llena y suelta vapor. Al final, una cuchara de cata recoge un sorbo y el aroma sube."></canvas>
-        </div>
-        <div class="velo" aria-hidden="true"></div>
-
-        <!-- Notas del aroma en el epílogo: decorativas, la ficha de cata las repite. -->
-        <div id="aromas" class="aromas" aria-hidden="true">
-          <span class="aroma vidrio" data-nota="panela"><span class="aroma-punto"></span>Panela</span>
-          <span class="aroma vidrio" data-nota="mandarina"><span class="aroma-punto"></span>Mandarina</span>
-          <span class="aroma vidrio" data-nota="cacao"><span class="aroma-punto"></span>Cacao</span>
-        </div>
+    <!-- 1. Vitrina: las bolsas en órbita (3D). -->
+    <section id="vitrina" class="capitulo capitulo--vitrina" aria-labelledby="vitrina-titulo">
+      <div class="fijo">
+        <p class="palabra-fondo palabra-fondo--vitrina" aria-hidden="true" data-marca-corto>CO2</p>
 
         <p id="aviso" class="aviso" role="alert" hidden>
-          <span id="aviso-texto">La animación no se pudo cargar, pero aquí tienes la historia completa.</span>
+          <span id="aviso-texto">La animación no se pudo cargar, pero aquí tienes toda la información.</span>
           <button id="reintentar" class="aviso-boton" type="button">Reintentar</button>
         </p>
 
-        <div class="capitulos">
-          <article id="cap-1" class="capitulo vidrio" data-titulo="Origen">
-            <p class="etapa"><span class="etapa-num">01</span><span class="etapa-nombre">Origen</span></p>
-            <h1>El arte de la cata empieza en un solo grano.</h1>
-            <p class="capitulo-texto">Finca, altura y proceso. Todo lo que la cata buscará en la taza, el grano ya lo trae.</p>
-            <span class="capitulo-hilo" aria-hidden="true"></span>
-          </article>
-          <article id="cap-2" class="capitulo vidrio" data-titulo="Molienda y fragancia">
-            <p class="etapa"><span class="etapa-num">02</span><span class="etapa-nombre">Molienda y fragancia</span></p>
-            <h2>Primero, la fragancia en seco.</h2>
-            <p class="capitulo-texto">Molienda gruesa, 8,25&nbsp;g por cada 150&nbsp;ml. Se huele el polvo antes de que toque el agua.</p>
-            <span class="capitulo-hilo" aria-hidden="true"></span>
-          </article>
-          <article id="cap-3" class="capitulo vidrio" data-titulo="Infusión y aroma">
-            <p class="etapa"><span class="etapa-num">03</span><span class="etapa-nombre">Infusión y aroma</span></p>
-            <h2>El agua, a 93&nbsp;°C, despierta el aroma.</h2>
-            <p class="capitulo-texto">Se vierte hasta el borde y se deja reposar. En la superficie se forma una costra.</p>
-            <span class="capitulo-hilo" aria-hidden="true"></span>
-          </article>
-          <article id="cap-4" class="capitulo vidrio" data-titulo="Quiebre de la costra">
-            <p class="etapa"><span class="etapa-num">04</span><span class="etapa-nombre">Quiebre de la costra</span></p>
-            <h2>A los cuatro minutos, se rompe la costra.</h2>
-            <p class="capitulo-texto">Tres giros de cuchara y el aroma se libera de golpe. Es el instante más intenso de la cata.</p>
-            <span class="capitulo-hilo" aria-hidden="true"></span>
-          </article>
-          <article id="cap-5" class="capitulo vidrio" data-titulo="Sorbo y notas">
-            <p class="etapa"><span class="etapa-num">05</span><span class="etapa-nombre">Sorbo y notas</span></p>
-            <h2>Después, el sorbo.</h2>
-            <p class="capitulo-texto">Se sorbe con fuerza desde la cuchara mientras la taza se enfría, para leer acidez, cuerpo y dulzor.</p>
-            <span class="capitulo-hilo" aria-hidden="true"></span>
-          </article>
+        <div class="vitrina-texto">
+          <p class="sobretitulo"><span data-marca-ciudad>Pasto, Nariño</span> · Tostadores</p>
+          <h1 id="vitrina-titulo" class="titular titular--vitrina">
+            <span class="linea" style="--i: 0"><span>No es café,</span></span>
+            <span class="linea" style="--i: 1"><span>es un</span></span>
+            <span class="linea linea--acento" style="--i: 2"><span>método.</span></span>
+          </h1>
+          <p class="spec"><span>Agua a 93 °C</span> · <span>250 g</span> · <span data-lotes-cuenta>Lotes exclusivos</span></p>
         </div>
 
-        <nav class="puntos vidrio" aria-label="Etapas de la catación">
-          <span class="puntos-riel" aria-hidden="true"><span id="indicador-barra" class="indicador-barra"></span></span>
-          <ol>
-            <li><a href="#cap-1" aria-current="step"><span class="sr">Etapa 1: Origen</span></a></li>
-            <li><a href="#cap-2"><span class="sr">Etapa 2: Molienda y fragancia</span></a></li>
-            <li><a href="#cap-3"><span class="sr">Etapa 3: Infusión y aroma</span></a></li>
-            <li><a href="#cap-4"><span class="sr">Etapa 4: Quiebre de la costra</span></a></li>
-            <li><a href="#cap-5"><span class="sr">Etapa 5: Sorbo y notas</span></a></li>
-          </ol>
-        </nav>
-
-        <p id="indicacion" class="indicacion">
-          <span>Desliza para catar</span>
-          <span class="indicacion-linea" aria-hidden="true"></span>
-        </p>
-
-        <div class="indicador" aria-hidden="true">
-          <p class="indicador-texto">
-            <span id="indicador-numero" class="indicador-numero">01</span>
-            <span class="indicador-total">/ 05</span>
-            <span id="indicador-titulo" class="indicador-titulo">Origen</span>
-          </p>
-          <p id="carga" class="carga">Preparando animación 0 %</p>
-        </div>
-      </div>
-    </section>
-
-    <section id="ficha" class="ficha" aria-labelledby="ficha-titulo">
-      <div class="seccion-cabeza">
-        <p class="sobretitulo">Ficha de cata</p>
-        <h2 id="ficha-titulo">Lote Nº&nbsp;07, <em>Nariño</em></h2>
-        <p class="seccion-entrada">Lo que anotó la mesa, atributo por atributo, en la escala de la SCA.</p>
-      </div>
-
-      <div class="ficha-tarjeta vidrio-solido">
-        <figure class="ficha-grafico">
-          <svg class="radar" viewBox="-28 0 296 240" role="img" aria-labelledby="radar-titulo">
-            <title id="radar-titulo">Perfil de atributos en escala de 6 a 10: los seis puntúan entre 8,00 y 8,25.</title>
-            <g class="radar-rejilla">
-              <polygon points="120.0,98.0 139.1,109.0 139.1,131.0 120.0,142.0 100.9,131.0 100.9,109.0"/>
-              <polygon points="120.0,76.0 158.1,98.0 158.1,142.0 120.0,164.0 81.9,142.0 81.9,98.0"/>
-              <polygon points="120.0,54.0 177.2,87.0 177.2,153.0 120.0,186.0 62.8,153.0 62.8,87.0"/>
-              <polygon points="120.0,32.0 196.2,76.0 196.2,164.0 120.0,208.0 43.8,164.0 43.8,76.0"/>
-              <path d="M120 120V32M120 120l76.2-44M120 120l76.2 44M120 120v88M120 120l-76.2 44M120 120l-76.2-44"/>
-            </g>
-            <polygon class="radar-area" points="120.0,70.5 162.9,95.3 158.1,142.0 120.0,169.5 81.9,142.0 81.9,98.0"/>
-            <g class="radar-puntos">
-              <circle cx="120" cy="70.5" r="2.6"/><circle cx="162.9" cy="95.3" r="2.6"/><circle cx="158.1" cy="142" r="2.6"/>
-              <circle cx="120" cy="169.5" r="2.6"/><circle cx="81.9" cy="142" r="2.6"/><circle cx="81.9" cy="98" r="2.6"/>
-            </g>
-            <g class="radar-etiquetas" aria-hidden="true">
-              <text x="120" y="20" text-anchor="middle">Fragancia</text>
-              <text x="202" y="68" text-anchor="start">Sabor</text>
-              <text x="202" y="180" text-anchor="start">Retrogusto</text>
-              <text x="120" y="230" text-anchor="middle">Acidez</text>
-              <text x="38" y="180" text-anchor="end">Cuerpo</text>
-              <text x="38" y="68" text-anchor="end">Balance</text>
-            </g>
-          </svg>
-          <figcaption class="puntaje">
-            <span class="puntaje-valor">86,75</span>
-            <span class="puntaje-etiqueta">puntos en la ficha</span>
-          </figcaption>
-        </figure>
-
-        <div class="ficha-detalle">
-          <ul class="atributos" aria-label="Atributos, escala de 6 a 10">
-            <li style="--valor: 0.5625"><span class="atributo-nombre">Fragancia y aroma</span><span class="atributo-barra" aria-hidden="true"></span><span class="atributo-valor">8,25</span></li>
-            <li style="--valor: 0.5625"><span class="atributo-nombre">Sabor</span><span class="atributo-barra" aria-hidden="true"></span><span class="atributo-valor">8,25</span></li>
-            <li style="--valor: 0.5"><span class="atributo-nombre">Retrogusto</span><span class="atributo-barra" aria-hidden="true"></span><span class="atributo-valor">8,00</span></li>
-            <li style="--valor: 0.5625"><span class="atributo-nombre">Acidez</span><span class="atributo-barra" aria-hidden="true"></span><span class="atributo-valor">8,25</span></li>
-            <li style="--valor: 0.5"><span class="atributo-nombre">Cuerpo</span><span class="atributo-barra" aria-hidden="true"></span><span class="atributo-valor">8,00</span></li>
-            <li style="--valor: 0.5"><span class="atributo-nombre">Balance</span><span class="atributo-barra" aria-hidden="true"></span><span class="atributo-valor">8,00</span></li>
-          </ul>
-
-          <div class="notas">
-            <p class="notas-titulo">Notas de cata</p>
-            <p class="notas-lista"><em>Panela, mandarina y cacao.</em> Acidez cítrica y brillante, cuerpo sedoso, final largo y limpio.</p>
+        <div class="vitrina-accion">
+          <p class="vitrina-sub"><strong data-marca-lema>Laboratorio de café de especialidad</strong>. <span data-marca-descripcion>Descubrimos y tostamos cafés colombianos de origen.</span></p>
+          <div class="botones">
+            <a class="boton boton--primario boton--brillo" href="#tienda">Ver los lotes</a>
+            <a class="boton boton--fantasma" href="#laboratorio">Conocer el laboratorio</a>
           </div>
-
-          <dl id="origen" class="datos">
-            <div><dt>Origen</dt><dd>Nariño, Colombia</dd></div>
-            <div><dt>Altitud</dt><dd>1900–2200 m s.&nbsp;n.&nbsp;m.</dd></div>
-            <div><dt>Proceso</dt><dd>Lavado</dd></div>
-            <div><dt>Tueste</dt><dd>Medio claro</dd></div>
-          </dl>
-
-          <p class="ficha-nota">Ficha ilustrativa de una marca ficticia. El total suma, además de estos seis atributos, uniformidad, taza limpia y dulzor (10 cada uno) y la impresión global (8,00).</p>
         </div>
-      </div>
 
-      <div class="ficha-accion">
-        <a class="boton-vidrio vidrio vidrio--refracta" href="#reservar">Reservar una cata</a>
+        <p id="indicacion" class="indicacion" aria-hidden="true">
+          <span>Desliza</span>
+          <span class="indicacion-linea"></span>
+        </p>
+        <p id="carga" class="carga">Preparando animación 0 %</p>
       </div>
     </section>
 
-    <section id="reservar" class="reservar" aria-labelledby="reservar-titulo">
-      <div class="seccion-cabeza">
-        <p class="sobretitulo">Mesa de cata</p>
-        <h2 id="reservar-titulo">Reserva tu lugar en la mesa.</h2>
-        <p class="seccion-entrada">Sesiones pequeñas, con cucharas, tazas y tiempo.</p>
+    <!-- 2. Historia: el grano, la taza y el chorro (3D). data-desde/data-hasta son fracciones del
+         progreso de la sección; la orquestación puede ajustarlas al 3D o mandar `beats`. -->
+    <section id="historia" class="capitulo capitulo--historia" aria-labelledby="historia-titulo">
+      <div class="fijo">
+        <h2 id="historia-titulo" class="sr">El método, del grano a la taza</h2>
+        <p class="historia-numero" aria-hidden="true"><span data-beat-numero>01</span></p>
+        <ol class="beats">
+          <li class="beat" data-desde="0" data-hasta="0.27">
+            <h3 class="titular titular--beat">
+              <span class="linea" style="--i: 0"><span>Tostado</span></span>
+              <span class="linea linea--acento" style="--i: 1"><span>en Pasto.</span></span>
+            </h3>
+            <p class="spec">Tostadores · Laboratorio de café</p>
+          </li>
+          <li class="beat" data-desde="0.25" data-hasta="0.52">
+            <h3 class="titular titular--beat">
+              <span class="linea" style="--i: 0"><span>Agua</span></span>
+              <span class="linea linea--acento" style="--i: 1"><span>a 93 °C.</span></span>
+            </h3>
+            <p class="spec"><span>93 °C · 9 bar · 28 s</span> <span class="spec-nota">Receta de referencia</span></p>
+          </li>
+          <li class="beat" data-desde="0.5" data-hasta="0.77">
+            <h3 class="titular titular--beat">
+              <span class="linea" style="--i: 0"><span>Un solo</span></span>
+              <span class="linea linea--acento" style="--i: 1"><span>chorro.</span></span>
+            </h3>
+            <p class="spec">Del asa a la taza, sin pausa</p>
+          </li>
+          <li class="beat" data-desde="0.75" data-hasta="1">
+            <h3 class="titular titular--beat">
+              <span class="linea" style="--i: 0"><span>Hasta</span></span>
+              <span class="linea linea--acento" style="--i: 1"><span>el borde.</span></span>
+            </h3>
+            <p class="spec">Cuerpo · Crema · ¿Le sientes el jazmín?</p>
+          </li>
+        </ol>
+        <div class="historia-riel" aria-hidden="true"><span></span></div>
       </div>
-      <form id="reserva" class="reserva vidrio-solido" novalidate aria-describedby="reserva-demo">
-        <p id="reserva-demo" class="reserva-demo"><span class="insignia">Demostración</span> Este formulario no envía ni guarda ningún dato.</p>
-        <div class="campos">
-          <label class="campo">
-            <span>Nombre</span>
-            <input type="text" autocomplete="off" placeholder="Tu nombre">
-          </label>
-          <label class="campo">
-            <span>Fecha preferida</span>
-            <input type="date" autocomplete="off">
-          </label>
-          <label class="campo">
-            <span>Personas</span>
-            <select>
-              <option>1</option><option selected>2</option><option>3</option><option>4</option>
-            </select>
-          </label>
+    </section>
+
+    <!-- 3. Inmersión: la cámara entra en la crema y baja bajo la superficie (3D). -->
+    <section id="inmersion" class="capitulo capitulo--inmersion" aria-labelledby="inmersion-titulo">
+      <div class="fijo">
+        <p class="palabra-fondo palabra-fondo--crema" aria-hidden="true">Crema</p>
+        <p class="palabra-fondo palabra-fondo--origen" aria-hidden="true">Origen</p>
+        <h2 id="inmersion-titulo" class="inmersion-linea">
+          <span class="spec">Bajo la crema</span>
+          <span class="inmersion-texto">Cafés colombianos de origen.</span>
+        </h2>
+      </div>
+    </section>
+
+    <!-- 4. Tienda: la fila final de bolsas (3D) y la ficha del lote elegido. Todo el catálogo
+         sale de src/marca.js (src/ui/tienda.js). -->
+    <section id="tienda" class="capitulo capitulo--tienda" aria-labelledby="tienda-titulo">
+      <div class="fijo">
+        <p class="palabra-fondo palabra-fondo--tienda" aria-hidden="true" data-tienda-palabra></p>
+
+        <div class="tienda-cabeza">
+          <p class="sobretitulo">Tienda · 250 g: tienen que rendir</p>
+          <h2 id="tienda-titulo" class="titular titular--seccion">
+            <span class="linea"><span>Elige</span></span>
+            <span class="linea linea--acento"><span>tu lote.</span></span>
+          </h2>
+          <div class="selector">
+            <div class="selector-pestanas" role="tablist" aria-label="Lotes" data-pestanas></div>
+            <div class="selector-flechas">
+              <button class="flecha" type="button" data-flecha="-1" aria-label="Lote anterior">
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <p class="selector-cuenta" aria-hidden="true" data-cuenta>01 / 01</p>
+              <button class="flecha" type="button" data-flecha="1" aria-label="Lote siguiente">
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </div>
+          <aside class="como-pedir" aria-labelledby="como-pedir-titulo">
+            <h3 id="como-pedir-titulo" class="como-pedir-titulo">Cómo pedir</h3>
+            <ol class="como-pedir-pasos">
+              <li>Elige el lote.</li>
+              <li>Toca <strong>Pedir</strong> y escríbenos por <span data-canal>Instagram</span>.</li>
+              <li>Te confirmamos disponibilidad, precio y envío.</li>
+            </ol>
+          </aside>
         </div>
-        <button class="boton-solido" type="submit">Solicitar reserva</button>
-        <p id="reserva-estado" class="reserva-estado" role="status" aria-live="polite"></p>
-      </form>
+
+        <div class="tienda-escena" aria-hidden="true"></div>
+
+        <div class="tienda-fichas">
+          <p class="aviso-muestra" data-aviso-muestra hidden>
+            <span class="aviso-muestra-punto" aria-hidden="true"></span>
+            Contenido de muestra: lotes y precios ilustrativos.
+          </p>
+          <div class="fichas" data-fichas></div>
+          <noscript><p class="tienda-sinjs">Activa JavaScript para ver el catálogo de lotes.</p></noscript>
+        </div>
+      </div>
+    </section>
+
+    <!-- Laboratorio: quiénes son, sin historia inventada ni fechas que caduquen. -->
+    <section id="laboratorio" class="laboratorio" aria-labelledby="laboratorio-titulo">
+      <div class="laboratorio-interior">
+        <p class="palabra-fondo palabra-fondo--lab" aria-hidden="true">Lab</p>
+        <div class="laboratorio-cabeza">
+          <p class="sobretitulo">El laboratorio · <span data-marca-ciudad>Pasto, Nariño</span></p>
+          <h2 id="laboratorio-titulo" class="titular titular--seccion">
+            <span class="linea"><span>Del origen</span></span>
+            <span class="linea linea--acento"><span>a tu taza.</span></span>
+          </h2>
+          <p class="laboratorio-entrada"><span data-marca-lema>Laboratorio de café de especialidad</span> y tostadores. <span data-marca-descripcion>Descubrimos y tostamos cafés colombianos de origen. Lotes exclusivos.</span></p>
+        </div>
+        <ul class="pilares">
+          <li class="pilar">
+            <span class="pilar-num" aria-hidden="true">01</span>
+            <h3 class="pilar-titulo">Origen</h3>
+            <p>Cafés colombianos de origen, en lotes exclusivos.</p>
+          </li>
+          <li class="pilar">
+            <span class="pilar-num" aria-hidden="true">02</span>
+            <h3 class="pilar-titulo">Tueste</h3>
+            <p>Somos tostadores: el tueste lo hacemos nosotros.</p>
+          </li>
+          <li class="pilar">
+            <span class="pilar-num" aria-hidden="true">03</span>
+            <h3 class="pilar-titulo">Catas</h3>
+            <p>Organizamos catas de café en <span data-marca-ciudad-corta>Pasto</span>. Ven, prueba y cuéntanos si le sientes el jazmín.</p>
+          </li>
+        </ul>
+        <div class="laboratorio-accion">
+          <a class="boton boton--primario" href="#tienda">Ver los lotes</a>
+          <a class="boton boton--fantasma" data-instagram target="_blank" rel="noopener noreferrer" hidden>Síguenos en Instagram<span class="sr"> (se abre en una pestaña nueva)</span></a>
+        </div>
+      </div>
     </section>
   </main>
 
   <footer class="pie">
-    <svg class="monograma" viewBox="0 0 40 40" width="28" height="28" aria-hidden="true" focusable="false">
-      <circle cx="20" cy="20" r="18.5" fill="none" stroke="currentColor" stroke-opacity="0.55" stroke-width="1"/>
-      <path d="M12.5 12.5 20 28l7.5-15.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M20 14.2c-2 2.6 2 4.8 0 7.4" fill="none" stroke="var(--acento)" stroke-width="1.3" stroke-linecap="round"/>
-    </svg>
-    <p>Vetamora es una marca ficticia creada para esta página de demostración. No se procesan reservas, pedidos ni pagos.</p>
+    <div class="pie-interior">
+      <a class="marca marca--pie" href="#vitrina" data-marca-enlace>
+        <span class="logo" data-logo>CO2 Coffee Lab</span>
+      </a>
+      <nav class="pie-enlaces" aria-label="Enlaces del pie">
+        <a href="#tienda">Lotes</a>
+        <a href="#historia">Método</a>
+        <a href="#laboratorio">Laboratorio</a>
+        <a data-instagram data-instagram-usuario target="_blank" rel="noopener noreferrer" hidden>Instagram<span class="sr"> (se abre en una pestaña nueva)</span></a>
+      </nav>
+      <p class="pie-legal" data-pie-legal>CO2 Coffee Lab</p>
+      <p class="pie-muestra" data-aviso-muestra hidden>Contenido de muestra: lotes y precios ilustrativos. Disponibilidad y precio se confirman al pedir.</p>
+    </div>
   </footer>
 
-  <script type="module" src="src/app.js"></script>
+  <!-- Interfaz: se inicia sola y solo escucha eventos (historia:progreso) y el DOM. -->
+  <script type="module" src="src/ui/pagina.js"></script>
+  <!-- Escena 3D y scroll. Con ?ui-demo se sustituye por un emisor simulado (src/debug/uiDemo.js);
+       ?ui-demo&3d carga ambos. -->
+  <script type="module">
+    const consulta = new URLSearchParams(location.search);
+    const demo = consulta.has('ui-demo');
+    if (demo) import('./src/debug/uiDemo.js').catch((error) => console.error('[co2] ui-demo no cargó', error));
+    if (!demo || consulta.has('3d')) import('./src/app.js').catch((error) => console.error('[co2] La app 3D no cargó', error));
+  </script>
 </body>
 </html>

@@ -20,3 +20,6 @@ blender/renders/
 # Sistema
 .DS_Store
 Thumbs.db
+
+# Fotos de referencia del cliente (solo guia de diseno, no se publican)
+img_productos/

@@ -20,9 +20,9 @@ const linear = (r, g, b) => new THREE.Color().setRGB(r, g, b, THREE.LinearSRGBCo
 
 const TUNING = Object.freeze({
   ceramic: {
-    clearcoat: 0.72,
-    clearcoatRoughness: 0.13,
-    envMapIntensity: 1.12,
+    clearcoat: 0.5,
+    clearcoatRoughness: 0.22,
+    envMapIntensity: 0.85,
     ior: 1.46,
     roughness: 0.82,
     metalness: 0,

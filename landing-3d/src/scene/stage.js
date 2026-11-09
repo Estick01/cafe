@@ -1,17 +1,19 @@
 /*
  * Escena en tiempo real: renderizador, carga del glb y aplicacion de cada pose
  * (el equivalente de animate_scene.apply_pose). La pose entra siempre desde fuera.
+ *
+ * La escena y el renderizador se comparten con la vitrina y la inmersion (scene/director.js):
+ * los objetos de la historia se pueden ocultar en bloque (setStoryVisible) y el dibujo final pasa
+ * por un "drawer" intercambiable (renderer.render o el post-proceso).
  */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 import { blenderEulerToThreeQuaternion, toThree } from '../logic/coords.js';
 import { FRAME, fittedCamera, frameRect } from '../logic/framing.js';
-import { sceneAt } from '../logic/epilogue.js';
-import { smooth } from '../logic/timeline.js';
+import { DURATION, poseAt, smooth } from '../logic/timeline.js';
 import { fetchSceneAssets } from './assetFetch.js';
 import { createContactShadows } from './contactShadows.js';
-import { createEpilogue } from './epilogue.js';
 import { createFloorReflection } from './floorReflection.js';
 import { createLiquids } from './liquids.js';
 import { addEnvironment, addLights } from './lighting.js';
@@ -19,13 +21,15 @@ import { createParallax } from './parallax.js';
 import { REQUIRED_OBJECTS, applySolidMaterials } from './solids.js';
 import { createSteam } from './steamSheets.js';
 
-const TONE_MAPPING_EXPOSURE = 1.0;
+const TONE_MAPPING_EXPOSURE = 0.88;
 const BACKGROUND = 0x0e0c0b;
 const NEAR = 0.02;
 const FAR = 8;
 const AMBIENT_BOB = 0.0005;
 const AMBIENT_SWAY = 0.012;
 const WAKE_STEAM = 0.001;
+/* Al entrar en la inmersion la camara recorre esta fraccion de su distancia al objetivo. */
+const DIVE_DOLLY = 0.55;
 /* Movil o pantalla pequeña: reflejo barato desde el principio. */
 const LOW_QUALITY_QUERY = '(pointer: coarse), (max-width: 760px)';
 
@@ -79,6 +83,13 @@ export function createStage(canvas, config) {
   let size = { width: 1, height: 1 };
   let ambientSeconds = 0;
   let parts = null;
+  /* Objetos que la historia anade a la escena: se ocultan juntos fuera de la seccion historia. */
+  let storyObjects = [];
+  let storyVisible = true;
+  /* Dibujo final con la camara activa; el director lo cambia por el post-proceso. */
+  let drawer = (activeCamera) => renderer.render(scene, activeCamera);
+  /* Capas que no deben salir en el reflejo del suelo (anillo, fundido). */
+  let suspendOverlays = () => () => {};
   /* Baja una vez y no vuelve a subir: igual que la resolucion adaptativa, sin saltos de ida y vuelta. */
   let quality = window.matchMedia(LOW_QUALITY_QUERY).matches ? 'low' : 'high';
   const deviceRatio = () => Math.min(window.devicePixelRatio || 1, config.dpr.max);
@@ -129,6 +140,7 @@ export function createStage(canvas, config) {
     const gltf = await loadModel(manifest, manifestUrl, onProgress, signal);
     signal?.throwIfAborted?.();
     gltf.scene.updateMatrixWorld(true);
+    const before = new Set(scene.children);
     scene.add(gltf.scene);
     const objects = findObjects(gltf.scene);
     const solids = applySolidMaterials({ objects, renderer });
@@ -136,12 +148,11 @@ export function createStage(canvas, config) {
     addEnvironment(renderer, scene);
     const steam = createSteam(scene);
     const contact = createContactShadows(scene);
-    const epilogue = createEpilogue(scene);
     const reflection = createFloorReflection({
       renderer,
       scene,
       floorMaterial: solids.floorMaterial,
-      hidden: [objects['GEO-suelo'], objects['GEO-pared'], steam.mesh, ...contact.meshes, ...epilogue.reflectionHidden],
+      hidden: [objects['GEO-suelo'], objects['GEO-pared'], steam.mesh, ...contact.meshes],
       beanParts: [objects['GEO-grano']],
     });
     parts = {
@@ -151,8 +162,8 @@ export function createStage(canvas, config) {
       steam,
       contact,
       reflection,
-      epilogue,
     };
+    storyObjects = scene.children.filter((child) => !before.has(child));
     applyQuality();
     reflection.setSize(size.width, size.height);
     onProgress(1, 'compile');
@@ -160,10 +171,20 @@ export function createStage(canvas, config) {
     onProgress(1, 'compile');
   }
 
-  /* Reflejo del suelo y render principal, con la camara ya colocada. */
-  function draw() {
+  /* Reflejo del suelo (sin las capas de transicion) y render principal, con la camara ya colocada. */
+  function draw(directly = false) {
+    const restore = suspendOverlays();
     parts.reflection.update(camera);
-    renderer.render(scene, camera);
+    restore();
+    if (directly) renderer.render(scene, camera);
+    else drawer(camera);
+  }
+
+  function setStoryVisible(visible) {
+    if (visible === storyVisible) return;
+    storyVisible = visible;
+    storyObjects.forEach((object) => { object.visible = visible; });
+    parts?.reflection.setEnabled(visible);
   }
 
   function applyPose(pose, ambient) {
@@ -193,12 +214,14 @@ export function createStage(canvas, config) {
   }
 
   /* Con rectangulo de referencia a pantalla completa, reproduce el encuadre de Cycles. */
-  function applyCamera(pose, width, height, rect, useParallax) {
+  function applyCamera(pose, width, height, rect, useParallax, dive = 0) {
     const fit = fittedCamera({ width, height, rect });
     const [tx, ty, tz] = toThree(pose.cameraTarget);
     const [px, py, pz] = toThree(pose.cameraPosition);
     cameraTarget.set(tx, ty, tz);
-    camera.position.set(tx + (px - tx) * fit.dolly, ty + (py - ty) * fit.dolly, tz + (pz - tz) * fit.dolly);
+    // dive (0-1): la camara baja hacia el cafe al pasar a la inmersion.
+    const dolly = fit.dolly * (1 - DIVE_DOLLY * dive);
+    camera.position.set(tx + (px - tx) * dolly, ty + (py - ty) * dolly, tz + (pz - tz) * dolly);
     if (useParallax) parallax.apply(camera.position, cameraTarget);
     camera.lookAt(cameraTarget);
     camera.aspect = width / height;
@@ -208,19 +231,20 @@ export function createStage(canvas, config) {
     parts.solids.setFocusDistance(camera.position.distanceTo(cameraTarget), width * renderer.getPixelRatio());
   }
 
-  /* Epilogo (cuchara y aroma), con la camara ya colocada: el tamano de las motas depende de ella. */
-  function applyEpilogue(epilogue, ambient, height) {
-    const projScale = (height * renderer.getPixelRatio()) / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
-    parts.epilogue.update(epilogue, ambient, { lowQuality: quality === 'low', projScale });
-  }
-
-  function render(pose, sideLayoutActive, epilogue = null) {
-    if (!parts) return;
+  /* Coloca la historia y su camara sin dibujar (el director decide donde y cuando). */
+  function prepare(pose, sideLayoutActive, { dive = 0 } = {}) {
+    if (!parts) return false;
     const rect = frameRect({ ...size, side: sideLayoutActive, time: pose.time });
     applyPose(pose, ambientSeconds);
-    applyCamera(pose, size.width, size.height, rect, true);
-    applyEpilogue(epilogue, ambientSeconds, size.height);
-    draw();
+    applyCamera(pose, size.width, size.height, rect, true, dive);
+    return true;
+  }
+
+  /* options.directly: sin post-proceso (p. ej. al dibujar en la textura de un fundido). */
+  function render(pose, sideLayoutActive, options = {}) {
+    if (!prepare(pose, sideLayoutActive, options)) return false;
+    draw(Boolean(options.directly));
+    return true;
   }
 
   /* Punto en ejes de Blender -> pixeles CSS del lienzo, con la camara del ultimo render. */
@@ -230,16 +254,16 @@ export function createStage(canvas, config) {
     return { x: ((ndc.x + 1) / 2) * size.width, y: ((1 - ndc.y) / 2) * size.height, visible: ndc.z < 1 };
   }
 
-  function renderStatic(pose, epilogue = null) {
-    if (!parts) return;
+  function renderStatic(pose) {
+    if (!parts) return false;
     const scale = Math.max(size.width / FRAME.width, size.height / FRAME.height);
     const width = FRAME.width * scale;
     const height = FRAME.height * scale;
     const rect = { x: (size.width - width) / 2, y: (size.height - height) / 2, width, height };
     applyPose(pose, 0);
     applyCamera(pose, size.width, size.height, rect, false);
-    applyEpilogue(epilogue, 0, size.height);
     draw();
+    return true;
   }
 
   /* Avanza el tiempo ambiental y dice si hay algo vivo que dibujar aunque el scroll este parado. */
@@ -256,11 +280,10 @@ export function createStage(canvas, config) {
     const previous = size;
     renderer.setPixelRatio(1);
     renderer.setSize(width, height, false);
-    const { pose, epilogue } = sceneAt(time);
+    const pose = poseAt(Math.min(time, DURATION));
     applyPose(pose, 0);
     applyCamera(pose, width, height, { x: 0, y: 0, width, height }, false);
-    applyEpilogue(epilogue, 0, height);
-    draw();
+    draw(true);
     const copy = document.createElement('canvas');
     copy.width = width;
     copy.height = height;
@@ -275,14 +298,13 @@ export function createStage(canvas, config) {
     resizeRenderer(ratio);
     const gl = renderer.getContext();
     const pixel = new Uint8Array(4);
-    const { pose, epilogue } = sceneAt(time);
+    const pose = poseAt(Math.min(time, DURATION));
     const rect = { x: 0, y: 0, width: size.width, height: size.height };
     const samples = [];
     for (let index = 0; index < count; index += 1) {
       const start = performance.now();
       applyPose(pose, index * 0.016);
       applyCamera(pose, size.width, size.height, rect, false);
-      applyEpilogue(epilogue, index * 0.016, size.height);
       draw();
       gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
       samples.push(performance.now() - start);
@@ -294,7 +316,16 @@ export function createStage(canvas, config) {
   return {
     load,
     measureRender,
+    prepare,
     render,
+    draw,
+    setStoryVisible,
+    /* Escena, renderizador y camara compartidos con los demas modulos. */
+    three: { scene, renderer, camera, THREE },
+    setDrawer(fn) { drawer = fn ?? ((activeCamera) => renderer.render(scene, activeCamera)); },
+    setOverlaySuspender(fn) { suspendOverlays = fn ?? (() => () => {}); },
+    getSize: () => size,
+    isLoaded: () => Boolean(parts),
     renderStatic,
     projectToScreen,
     setSize,

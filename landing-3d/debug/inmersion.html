@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Banco de pruebas: inmersión</title>
+  <style>
+    :root { color-scheme: dark; }
+    html, body { margin: 0; height: 100%; background: #050403; color: #f4f1ec; font: 13px/1.4 system-ui, sans-serif; overflow: hidden; }
+    canvas { display: block; }
+    #panel { position: fixed; top: 10px; left: 10px; z-index: 2; display: grid; gap: 6px; padding: 10px 12px; background: rgb(10 8 6 / 0.78); border: 1px solid rgb(255 255 255 / 0.12); border-radius: 10px; min-width: 250px; }
+    #panel label { display: grid; grid-template-columns: 70px 1fr 44px; align-items: center; gap: 8px; }
+    #panel output { text-align: right; font-variant-numeric: tabular-nums; }
+    #panel .fila { display: flex; gap: 10px; flex-wrap: wrap; }
+    #info { opacity: 0.75; font-variant-numeric: tabular-nums; }
+    body.oculto #panel { display: none; }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "../vendor/three-0.170.0/build/three.module.min.js",
+        "three/addons/": "../vendor/three-0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="panel">
+    <label>Fase <select id="fase"><option value="crema">crema</option><option value="bajo">bajo</option></select><span></span></label>
+    <label>p <input id="p" type="range" min="0" max="1" step="0.001" value="0"><output id="pv">0</output></label>
+    <label>time <input id="time" type="range" min="0" max="60" step="0.01" value="0"><output id="tv">0</output></label>
+    <label>Calidad <select id="calidad"><option value="alta">alta</option><option value="baja">baja</option></select><span></span></label>
+    <label>Lote <select id="lote"></select><span></span></label>
+    <div class="fila">
+      <label style="display:flex"><input id="post" type="checkbox" checked> post</label>
+      <label style="display:flex"><input id="animar" type="checkbox"> tiempo real</label>
+    </div>
+    <div id="info"></div>
+  </div>
+  <script type="module">
+    import * as THREE from 'three';
+    import { MARCA } from '../src/marca.js';
+    import { createInmersion } from '../src/scene/inmersion/index.js';
+    import { createPost } from '../src/scene/post/index.js';
+
+    const params = new URLSearchParams(location.search);
+    const fijo = params.has('w') && params.has('h');
+    const ancho = () => (fijo ? Number(params.get('w')) : innerWidth);
+    const alto = () => (fijo ? Number(params.get('h')) : innerHeight);
+    if (params.has('limpio')) document.body.classList.add('oculto');
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: true });
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.AgXToneMapping;
+    renderer.toneMappingExposure = 1.0;
+    renderer.setPixelRatio(fijo ? 1 : Math.min(devicePixelRatio, 2));
+    renderer.setSize(ancho(), alto());
+    document.body.append(renderer.domElement);
+
+    /* Escena compartida, como la del orquestador (aqui solo con la inmersion). */
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#050403');
+
+    const $ = (id) => document.getElementById(id);
+    MARCA.lotes.forEach((lote, i) => $('lote').append(new Option(lote.nombre, String(i))));
+    const estado = { fase: 'crema', p: 0, time: 0, lote: 0 };
+    let inmersion = null;
+    let post = null;
+    let calidad = params.get('calidad') === 'baja' ? 'baja' : 'alta';
+    $('calidad').value = calidad;
+
+    function crear() {
+      post?.dispose();
+      inmersion?.dispose();
+      inmersion = createInmersion({ scene, renderer, marca: MARCA, quality: calidad });
+      post = createPost({ renderer, scene, camera: inmersion.camera, quality: calidad });
+      post.setSize(ancho(), alto(), renderer.getPixelRatio());
+    }
+    crear();
+
+    function dibujar() {
+      inmersion.update(estado);
+      if ($('post').checked) {
+        post.setCamera(inmersion.camera);
+        post.setFocus(inmersion.focus);
+        post.render();
+      } else {
+        renderer.render(scene, inmersion.camera);
+      }
+    }
+
+    function leer() {
+      estado.fase = $('fase').value;
+      estado.p = Number($('p').value);
+      estado.time = Number($('time').value);
+      estado.lote = Number($('lote').value);
+      $('pv').textContent = estado.p.toFixed(3);
+      $('tv').textContent = estado.time.toFixed(1);
+    }
+    for (const id of ['fase', 'p', 'time', 'lote', 'post']) $(id).addEventListener('input', () => { leer(); dibujar(); });
+    $('calidad').addEventListener('change', () => { calidad = $('calidad').value; crear(); dibujar(); });
+    addEventListener('resize', () => {
+      if (fijo) return;
+      renderer.setSize(ancho(), alto());
+      post.setSize(ancho(), alto(), renderer.getPixelRatio());
+      dibujar();
+    });
+
+    const reloj = new THREE.Clock();
+    let ultimo = performance.now();
+    let media = 16;
+    renderer.setAnimationLoop(() => {
+      const ahora = performance.now();
+      media = media * 0.92 + (ahora - ultimo) * 0.08;
+      ultimo = ahora;
+      if ($('animar').checked) {
+        estado.time += reloj.getDelta();
+        $('time').value = String(estado.time % 60);
+        $('tv').textContent = estado.time.toFixed(1);
+        dibujar();
+      } else {
+        reloj.getDelta();
+      }
+      const i = inmersion.focus;
+      $('info').textContent = `${media.toFixed(1)} ms/frame · foco ${i.distance.toFixed(2)} ap ${i.aperture.toFixed(2)} · draw ${renderer.info.render.calls}`;
+    });
+
+    /* API para capturas y medidas automaticas. */
+    window.__inmersion = {
+      set(cambios = {}) {
+        Object.assign(estado, cambios);
+        if (typeof cambios.post === 'boolean') $('post').checked = cambios.post;
+        $('fase').value = estado.fase;
+        $('p').value = String(estado.p);
+        $('lote').value = String(estado.lote);
+        dibujar();
+        return { ...estado, foco: { ...inmersion.focus } };
+      },
+      setCalidad(valor) {
+        calidad = valor === 'baja' ? 'baja' : 'alta';
+        $('calidad').value = calidad;
+        crear();
+        dibujar();
+      },
+      async capturar(nombre) {
+        dibujar();
+        const blob = await new Promise((r) => renderer.domElement.toBlob(r, 'image/png'));
+        const res = await fetch(`/__check/${nombre}`, { method: 'POST', body: blob });
+        return res.status;
+      },
+      /* Tiempo de fotograma sincronizado con la GPU (gl.finish) sobre n fotogramas. */
+      medir(n = 60) {
+        const gl = renderer.getContext();
+        dibujar();
+        gl.finish();
+        const t0 = performance.now();
+        for (let k = 0; k < n; k += 1) {
+          estado.time += 1 / 60;
+          dibujar();
+        }
+        gl.finish();
+        return (performance.now() - t0) / n;
+      },
+      info: () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, programs: renderer.info.programs.length, memoria: { ...renderer.info.memory } }),
+    };
+    leer();
+    dibujar();
+    document.documentElement.classList.add('listo');
+  </script>
+</body>
+</html>

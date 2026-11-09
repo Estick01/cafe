@@ -1,29 +1,43 @@
 /*
- * Base: tokens de color, tipografia y reglas comunes.
- * Paleta: marmol casi negro, crema, caoba y un unico acento calido (caramelo).
+ * Base: tokens, tipografia y piezas comunes (titulares, spec, botones).
+ * Los colores de marca se sobrescriben al arrancar desde MARCA.colores / MARCA.bolsa (pagina.js);
+ * aqui van los mismos valores para que la pagina sin JS se vea igual.
+ *
+ * Contraste sobre --fondo (#0a0a0a): --crema 18:1, --crema-suave 11:1, --crema-tenue 6,4:1,
+ * --acento-texto 6,3:1 (texto pequeno en rojo). --acento puro (4,2:1) solo en titulares grandes,
+ * fondos de boton (texto blanco: 4,8:1) y adornos.
  */
 :root {
   color-scheme: dark;
 
-  --negro: #0c0a09;
-  --marmol: #151210;
-  --marmol-claro: #201b18;
-  --crema: #f3ead9;
-  --crema-suave: #d8ccb9;      /* texto secundario: 11,6:1 sobre --negro */
-  --crema-tenue: #b3a693;      /* solo texto auxiliar grande o de 13 px+: 7,6:1 sobre --negro */
-  --caoba: #7a4426;
-  --caoba-profundo: #3a2015;
-  --acento: #c9935f;           /* caramelo: 7,2:1 sobre --negro */
-  --acento-claro: #e2b98d;
-  --linea: rgba(243, 234, 217, 0.14);
-  --linea-fuerte: rgba(243, 234, 217, 0.28);
-  --velo: 12, 10, 9;
+  --fondo: #0a0a0a;
+  --fondo-2: #141210;
+  --fondo-3: #1d1a17;
+  --crema: #f4f1ec;
+  --crema-suave: #cdc6bb;
+  --crema-tenue: #a29a8f;
+  --acento: #d6362c;
+  --acento-texto: #f0645a;
+  --caramelo: #c9935f;
+  --azul: #1f3fa0;
+  --verde: #1f7a5a;
+  --blanco: #ffffff;
+  --linea: color-mix(in srgb, var(--crema) 14%, transparent);
+  --linea-fuerte: color-mix(in srgb, var(--crema) 30%, transparent);
 
-  --serif: "Cormorant Garamond", "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --display: "Anton", "Bebas Neue", Impact, "Arial Narrow", "Roboto Condensed", sans-serif;
   --sans: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
 
+  /* Tamanos fluidos: de 375 px a 1440 px y mas. */
+  --t-vitrina: clamp(3.25rem, 1.1rem + 8.4vw, 10.5rem);
+  --t-beat: clamp(3.4rem, 1rem + 9.6vw, 11.5rem);
+  --t-seccion: clamp(2.9rem, 1.4rem + 5.4vw, 7rem);
+  --t-fondo: clamp(9rem, 32vw, 36rem);
+  --t-spec: clamp(0.6875rem, 0.64rem + 0.18vw, 0.8125rem);
+
   --gutter: 16px;
-  --alto-cabecera: 72px;
+  --margen: clamp(16px, 4.4vw, 64px);
+  --alto-cabecera: 76px;
   --altura-pantalla: 100vh;
   --curva: cubic-bezier(0.22, 0.7, 0.2, 1);
 }
@@ -34,40 +48,33 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html { background: var(--negro); -webkit-text-size-adjust: 100%; }
+html { background: var(--fondo); -webkit-text-size-adjust: 100%; }
 
 @media (prefers-reduced-motion: no-preference) {
-  html { scroll-behavior: smooth; }
+  html:not(.ui-demo) { scroll-behavior: smooth; }
 }
 
 body {
   margin: 0;
-  background: var(--negro);
+  background: var(--fondo);
   color: var(--crema);
   font: 400 1rem/1.6 var(--sans);
-  font-feature-settings: "cv11", "ss01";
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
 }
 
-h1, h2, h3 {
-  margin: 0;
-  font-family: var(--serif);
-  font-weight: 400;
-  line-height: 1.05;
-  letter-spacing: -0.01em;
-  text-wrap: balance;
-}
-
-em { font-style: italic; }
+h1, h2, h3 { margin: 0; font-weight: 400; text-wrap: balance; }
 p { margin: 0; text-wrap: pretty; }
 ul, ol { margin: 0; padding: 0; list-style: none; }
+dl, dd { margin: 0; }
 img, svg, canvas { display: block; }
 button, input, select { font: inherit; color: inherit; }
+a { color: inherit; }
 
 :focus-visible {
-  outline: 2px solid var(--acento-claro);
+  outline: 2px solid var(--crema);
   outline-offset: 3px;
+  border-radius: 4px;
 }
 
 .sr {
@@ -80,6 +87,7 @@ button, input, select { font: inherit; color: inherit; }
 }
 
 .filtros { position: absolute; width: 0; height: 0; overflow: hidden; }
+.oculto { visibility: hidden; }
 
 .saltar {
   position: fixed;
@@ -89,22 +97,142 @@ button, input, select { font: inherit; color: inherit; }
   padding: 10px 18px;
   border-radius: 999px;
   background: var(--crema);
-  color: var(--negro);
+  color: var(--fondo);
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   transform: translate(-50%, -200%);
 }
-
 .saltar:focus { transform: translate(-50%, 0); }
 
-.oculto { visibility: hidden; }
+/* ---------- Titulares en mayusculas condensadas ---------- */
 
-/* Rotulos pequenos en versalitas: etapas, sobretitulos y datos. */
-.sobretitulo,
-.etapa,
-.notas-titulo,
-.datos dt {
-  font: 500 0.6875rem/1.4 var(--sans);
-  letter-spacing: 0.22em;
+.titular {
+  font-family: var(--display);
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: 0.005em;
   text-transform: uppercase;
+  text-wrap: initial;
+}
+
+.titular .linea {
+  display: block;
+  /* Recorte para la entrada de cada linea; el padding deja sitio a tildes y a la Ñ. */
+  overflow: clip;
+  padding-block: 0.08em 0.02em;
+  margin-block: -0.08em -0.02em;
+}
+.titular .linea > span { display: block; }
+.linea--acento { color: var(--acento); }
+
+/* Linea tecnica bajo los titulares: "93 °C · 9 BAR · 28 S". */
+.spec {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  color: var(--crema);
+  font: 600 var(--t-spec)/1.4 var(--sans);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+.spec::before {
+  content: "";
+  width: 28px;
+  height: 2px;
+  background: var(--acento);
+}
+.spec-nota {
+  color: var(--crema-tenue);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+}
+
+.sobretitulo {
+  color: var(--acento-texto);
+  font: 600 0.75rem/1.4 var(--sans);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+/* Palabras gigantes de fondo, solo con contorno. Decorativas (aria-hidden). */
+.palabra-fondo {
+  position: absolute;
+  margin: 0;
+  pointer-events: none;
+  user-select: none;
+  color: transparent;
+  font: 400 var(--t-fondo)/0.8 var(--display);
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  -webkit-text-stroke: 1.5px color-mix(in srgb, var(--crema) 22%, transparent);
+}
+
+@supports not (-webkit-text-stroke: 1px black) {
+  .palabra-fondo { color: color-mix(in srgb, var(--crema) 6%, transparent); }
+}
+
+/* ---------- Botones ---------- */
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 26px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font: 700 0.8125rem/1.1 var(--sans);
+  letter-spacing: 0.14em;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.25s var(--curva), background-color 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.boton--primario {
+  background: var(--acento);
+  color: var(--blanco);
+  box-shadow: 0 14px 40px -12px color-mix(in srgb, var(--acento) 80%, transparent);
+}
+.boton--primario:hover { background: color-mix(in srgb, var(--acento) 90%, black); transform: translateY(-1px); }
+
+.boton--fantasma {
+  border-color: var(--linea-fuerte);
+  background: color-mix(in srgb, var(--fondo) 40%, transparent);
+  color: var(--crema);
+}
+.boton--fantasma:hover { border-color: var(--crema); }
+
+/* Brillo pulsante del CTA principal, como el "Shop" de la referencia. */
+.boton--brillo { position: relative; isolation: isolate; }
+.boton--brillo::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--acento) 60%, transparent), transparent);
+  filter: blur(10px);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .boton--brillo::after { animation: brillo 2.8s ease-in-out infinite; }
+}
+
+@keyframes brillo {
+  0%, 100% { opacity: 0.45; transform: scale(0.96); }
+  50% { opacity: 0.95; transform: scale(1.06); }
+}
+
+@media (forced-colors: active) {
+  .boton { border: 1px solid ButtonText; }
+  .boton--brillo::after { display: none; }
+  .palabra-fondo { display: none; }
 }

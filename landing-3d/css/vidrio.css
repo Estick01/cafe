@@ -2,13 +2,12 @@
  * Vidrio liquido: panel translucido con desenfoque y saturacion del fondo, borde especular,
  * aro interior de luz, sombra suave y tinte oscuro que se adapta a lo que pasa por detras.
  *
- * Rendimiento: solo .vidrio usa backdrop-filter y, en la historia, hay como mucho tres capas vivas
- * a la vez (pildora de navegacion, riel de etapas y la tarjeta del capitulo visible; las ocultas
- * pasan a visibility: hidden). En pantallas tactiles o estrechas el radio baja a la mitad.
- * Los paneles sobre fondo quieto (ficha, formulario) usan .vidrio-solido, sin backdrop-filter.
+ * Rendimiento: solo .vidrio usa backdrop-filter y hay como mucho tres capas vivas a la vez: la
+ * pildora de navegacion, la ficha visible de la tienda (las demas estan [hidden]) y, en movil, el
+ * panel del menu abierto. Etiquetas, beats y botones no usan desenfoque.
  */
 :root {
-  --vidrio-tinte: rgba(24, 19, 16, 0.46);
+  --vidrio-tinte: rgba(14, 13, 12, 0.5);
   --vidrio-blur: 22px;
   --vidrio-sat: 165%;
   --vidrio-borde: linear-gradient(140deg,
@@ -45,7 +44,7 @@
 .vidrio-solido {
   background:
     linear-gradient(160deg, rgba(255, 246, 232, 0.07), rgba(255, 246, 232, 0.015) 45%, rgba(0, 0, 0, 0.12)),
-    rgba(26, 21, 18, 0.72);
+    rgba(20, 18, 16, 0.78);
 }
 
 /* Borde especular: un trazo de 1 px con degradado, recortado con mascara. */
@@ -84,7 +83,7 @@
 
 /* Sin backdrop-filter: panel esmerilado solido. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .vidrio { background: rgba(26, 21, 18, 0.94); }
+  .vidrio { background: rgba(20, 18, 16, 0.95); }
 }
 
 /* Transparencia reducida: paneles opacos, sin desenfoque ni refraccion. */
@@ -93,9 +92,9 @@
   .refraccion .vidrio--refracta {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    background: rgb(26, 21, 18);
+    background: rgb(20, 18, 16);
   }
-  .vidrio-solido { background: rgb(26, 21, 18); }
+  .vidrio-solido { background: rgb(20, 18, 16); }
   .vidrio::after, .vidrio-solido::after { display: none; }
 }
 

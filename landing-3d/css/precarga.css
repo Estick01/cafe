@@ -1,6 +1,7 @@
 /*
  * Pantalla de carga: solo existe con JavaScript (.cargando) y termina al pintar la escena.
- * Tarjeta de vidrio sobre marmol, monograma con aro de progreso y riel fino con porcentaje.
+ * Fondo negro con resplandor rojo, la taza de la marca dentro de un aro de progreso, titular
+ * condensado y riel con porcentaje. La logica (progreso, error, reintento) esta en src/ui/loader.js.
  */
 html.cargando { overflow: hidden; }
 .precarga { display: none; }
@@ -17,21 +18,9 @@ html.cargando { overflow: hidden; }
   padding: 32px var(--gutter);
   color: var(--crema);
   background:
-    radial-gradient(ellipse 46% 38% at 50% 46%, rgba(201, 147, 95, 0.14) 0%, transparent 70%),
-    radial-gradient(ellipse at 50% 42%, #1d1714 0%, var(--negro) 70%);
-}
-
-/* Vetas de marmol muy tenues: le dan algo que refractar al vidrio. */
-.cargando .precarga::before,
-.precarga-saliendo .precarga::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(118deg, transparent 46%, rgba(243, 234, 217, 0.035) 47%, transparent 48.5%),
-    linear-gradient(64deg, transparent 61%, rgba(243, 234, 217, 0.025) 62%, transparent 63.2%),
-    linear-gradient(152deg, transparent 22%, rgba(243, 234, 217, 0.02) 23%, transparent 24.2%);
+    radial-gradient(ellipse 40% 34% at 50% 44%, color-mix(in srgb, var(--acento) 18%, transparent) 0%, transparent 70%),
+    radial-gradient(ellipse 70% 50% at 50% 110%, color-mix(in srgb, var(--azul) 26%, transparent), transparent 70%),
+    var(--fondo);
 }
 
 .precarga-saliendo .precarga {
@@ -42,69 +31,82 @@ html.cargando { overflow: hidden; }
 }
 
 .precarga-contenido {
-  width: min(100%, 360px);
-  padding: 40px 32px 28px;
-  border-radius: 28px;
+  width: min(100%, 380px);
   text-align: center;
 }
 
-.precarga-sello { width: 96px; margin: 0 auto 22px; color: var(--crema); }
-.precarga-sello svg { width: 100%; height: auto; overflow: visible; }
-.precarga-aro-fondo { fill: none; stroke: rgba(243, 234, 217, 0.12); stroke-width: 1.5; }
+.precarga-sello {
+  position: relative;
+  width: 132px;
+  aspect-ratio: 1;
+  margin: 0 auto 26px;
+}
+.precarga-sello svg { width: 100%; height: 100%; overflow: visible; }
+.precarga-aro-fondo { fill: var(--fondo-2); stroke: var(--linea); stroke-width: 2; }
 .precarga-aro {
   fill: none;
   stroke: var(--acento);
-  stroke-width: 1.5;
+  stroke-width: 3;
   stroke-linecap: round;
   stroke-dasharray: 1;
   stroke-dashoffset: calc(1 - var(--progreso));
   transition: stroke-dashoffset 0.45s var(--curva);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--acento) 70%, transparent));
 }
-/* Sin animacion el monograma se ve completo igualmente. */
-.precarga-v { stroke-dasharray: 1; stroke-dashoffset: 0; animation: trazar-sello 1.8s var(--curva); }
-.precarga-v + .precarga-v { animation-duration: 2.4s; }
+
+.precarga-insignia {
+  position: absolute;
+  inset: 22%;
+  display: grid;
+  place-items: center;
+  color: var(--crema);
+}
+.precarga-insignia svg { width: 100%; height: auto; }
 
 .precarga-marca {
-  margin-bottom: 10px;
-  color: var(--acento);
-  font: 500 0.6875rem/1.4 var(--sans);
-  letter-spacing: 0.42em;
+  margin-bottom: 12px;
+  color: var(--acento-texto);
+  font: 700 0.75rem/1.4 var(--sans);
+  letter-spacing: 0.36em;
   text-transform: uppercase;
 }
 
-.precarga h2 { font-size: clamp(1.75rem, 6vw, 2.125rem); font-weight: 400; }
-.precarga-estado { min-height: 1.6em; margin-top: 12px; color: var(--crema-suave); font-size: 0.8125rem; }
+.precarga h2 {
+  font: 400 clamp(2.25rem, 9vw, 3.25rem)/0.95 var(--display);
+  text-transform: uppercase;
+}
+.precarga-estado { min-height: 1.6em; margin-top: 14px; color: var(--crema-suave); font-size: 0.875rem; }
 
-.precarga-medida { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 14px; margin-top: 28px; }
-.precarga-riel { position: relative; height: 2px; overflow: hidden; border-radius: 2px; background: rgba(243, 234, 217, 0.14); }
+.precarga-medida { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 14px; margin-top: 26px; }
+.precarga-riel { position: relative; height: 3px; overflow: hidden; border-radius: 3px; background: var(--linea); }
 .precarga-riel span {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, var(--caoba), var(--acento-claro));
+  background: var(--acento);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.45s var(--curva);
 }
-.precarga-porcentaje { min-width: 3.4em; color: var(--crema); font: 500 0.75rem/1.5 var(--sans); font-variant-numeric: tabular-nums; text-align: right; letter-spacing: 0.04em; }
+.precarga-porcentaje { min-width: 3.4em; font: 700 0.8125rem/1.5 var(--sans); font-variant-numeric: tabular-nums; text-align: right; }
 
-.precarga-error { margin-top: 24px; padding: 18px 18px 20px; border: 1px solid rgba(201, 147, 95, 0.45); border-radius: 18px; background: rgba(58, 32, 21, 0.45); }
+.precarga-error { margin-top: 24px; padding: 18px 18px 20px; border: 1px solid color-mix(in srgb, var(--acento) 60%, transparent); border-radius: 18px; background: color-mix(in srgb, var(--acento) 12%, var(--fondo)); }
 .precarga-error[hidden] { display: none; }
-.precarga-error-texto { color: var(--crema); font-size: 0.875rem; }
+.precarga-error-texto { font-size: 0.9375rem; }
 
 .precarga-boton {
-  min-height: 44px;
+  min-height: 48px;
   margin-top: 14px;
-  padding: 10px 26px;
+  padding: 10px 28px;
   border: 0;
   border-radius: 999px;
-  background: var(--crema);
-  color: var(--caoba-profundo);
-  font: 600 0.75rem/1.2 var(--sans);
-  letter-spacing: 0.16em;
+  background: var(--acento);
+  color: var(--blanco);
+  font: 700 0.8125rem/1.2 var(--sans);
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   cursor: pointer;
 }
-.precarga-boton:hover { background: #fff8ec; }
+.precarga-boton:hover { background: color-mix(in srgb, var(--acento) 88%, black); }
 
 .precarga-saltar {
   min-height: 44px;
@@ -113,22 +115,19 @@ html.cargando { overflow: hidden; }
   border: 0;
   background: transparent;
   color: var(--crema-suave);
-  font: 400 0.75rem/1.5 var(--sans);
+  font: 400 0.8125rem/1.5 var(--sans);
   text-decoration: underline;
-  text-decoration-color: rgba(243, 234, 217, 0.35);
+  text-decoration-color: var(--linea-fuerte);
   text-underline-offset: 5px;
   cursor: pointer;
 }
 .precarga-saltar:hover { color: var(--crema); text-decoration-color: currentColor; }
 
-/* Error: el aro y el riel se quedan quietos en caoba. */
-.precarga-fallo .precarga-riel span { background: var(--caoba); }
-.precarga-fallo .precarga-aro { stroke: var(--caoba); }
-
-@keyframes trazar-sello { from { stroke-dashoffset: 1; } }
+/* Error: el aro y el riel se quedan quietos y apagados. */
+.precarga-fallo .precarga-riel span { background: var(--crema-tenue); }
+.precarga-fallo .precarga-aro { stroke: var(--crema-tenue); filter: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .precarga-v { animation: none; }
   .precarga-aro, .precarga-riel span { transition: none; }
   .precarga-saliendo .precarga { transition: none; }
 }

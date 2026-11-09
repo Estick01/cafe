@@ -1,41 +1,30 @@
 /*
- * Ajustes de la experiencia, heredados de la landing de imagenes.
- * Todos los tiempos estan en segundos del scroll: 0-10 la historia (timeline.js) y 10-13 el
- * epilogo de la cuchara y el aroma (logic/epilogue.js).
+ * Ajustes de la experiencia. Los tiempos estan en segundos de scroll G (logic/story.js):
+ *   0-2.5 vitrina (hero) · 2.5-3.3 anillo · 3.3-13.3 historia (timeline.js) · inmersion (crema y
+ *   bajo, INMERSION_DURACION) · emerge · tienda, quieta al final.
  */
 export const CONFIG = Object.freeze({
   /*
-   * Altura total de la seccion con scroll, en vh. El recorrido util es scrollVh - 100: 780 vh para
-   * 13 s, el mismo ritmo de antes (60 vh por segundo) con el epilogo al final.
+   * Ritmo del scroll: vh de recorrido por segundo de G. Cada seccion del DOM (#vitrina, #historia,
+   * #inmersion, #tienda) mide su tramo de G por este ritmo; la ultima suma una pantalla. Con las
+   * duraciones base (23,05 s) son unos 1480 vh en total.
    */
-  scrollVh: 880,
+  vhPerSecond: 60,
+
+  /* Secciones del DOM, en orden; sus anclas llevan al instante map.anclas[id] de story.js. */
+  sections: Object.freeze(['vitrina', 'historia', 'inmersion', 'tienda']),
+
+  /*
+   * Entrada automatica: si la pagina abre arriba y sin scroll, la vitrina hace su entrada sola hasta
+   * este G y se queda ahi (sin reinicio); el scroll se coloca en ese punto y sigue desde alli.
+   */
+  autoplay: Object.freeze({ toG: 2.4, secondsPerG: 1 }),
 
   /* Debe coincidir con la media query de la distribucion lateral en css/escena.css. */
   sideLayoutQuery: '(min-width: 1200px) and (min-aspect-ratio: 5/4), (max-height: 520px) and (min-aspect-ratio: 3/2)',
 
-  /*
-   * Las cinco etapas de la catacion, sincronizadas con logic/timeline.js. start/end delimitan el
-   * capitulo; anchor es el instante al que lleva su punto del riel.
-   *   cap-1 Origen ............... el grano flota (0-1,6 s)
-   *   cap-2 Molienda y fragancia . cae el chorro y forma el charco (1,6-3,2 s)
-   *   cap-3 Infusion y aroma ..... la taza crece con la cinta de cafe (3,2-5 s)
-   *   cap-4 Quiebre de la costra . el chorro salta del asa y el grano cae dentro (5-7,2 s)
-   *   cap-5 Sorbo y notas ........ taza llena y vapor; la cuchara sorbe y sube el aroma (7,2-13 s)
-   */
-  chapters: Object.freeze([
-    { id: 'cap-1', start: 0, end: 1.6, anchor: 0 },
-    { id: 'cap-2', start: 1.6, end: 3.2, anchor: 2.2 },
-    { id: 'cap-3', start: 3.2, end: 5, anchor: 4 },
-    { id: 'cap-4', start: 5, end: 7.2, anchor: 5.3 },
-    { id: 'cap-5', start: 7.2, end: 13, anchor: 8.8 },
-  ]),
-  chapterFade: 0.28,
-  chapterShiftPx: 18,
-  /* Etiquetas de aroma del epilogo: solo con sitio de sobra (en movil y calidad baja, no). */
-  aromaChipsQuery: '(min-width: 761px) and (pointer: fine)',
-
-  /* Fraccion del recorrido tras la que desaparece la indicacion de deslizar. */
-  scrollHintUntil: 0.03,
+  /* Lenis: suavizado de la rueda (lerp por fotograma a 60 Hz). El tacto queda nativo. */
+  smoothScroll: Object.freeze({ lerp: 0.11, wheelMultiplier: 1 }),
 
   assets: Object.freeze({
     manifest: 'assets/models/manifest.json',

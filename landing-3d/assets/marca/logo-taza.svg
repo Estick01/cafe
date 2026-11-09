@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" role="img" aria-label="CO2 Coffee Lab">
+  <title>CO2 Coffee Lab</title>
+  <!-- Taza de linea blanca, como en la etiqueta "Tostado por:" de la bolsa. -->
+  <g fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Boca de la taza -->
+    <ellipse cx="92" cy="46" rx="56" ry="12"/>
+    <!-- Cuerpo -->
+    <path d="M36 46 C36 92 58 118 92 118 C126 118 148 92 148 46"/>
+    <!-- Asa -->
+    <path d="M146 62 C176 58 186 78 176 92 C168 104 150 104 138 98"/>
+    <!-- Platillo -->
+    <path d="M24 124 C52 140 132 140 164 124"/>
+  </g>
+  <!-- Superficie del cafe -->
+  <path d="M46 48 C66 56 118 56 138 48" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+  <text x="100" y="156" text-anchor="middle" fill="currentColor"
+        font-family="'Segoe Script','Brush Script MT',cursive" font-size="20">Coffee Lab</text>
+</svg>

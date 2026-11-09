@@ -4,3 +4,7 @@
 /production/frames/
 *.blend1
 __pycache__/
+/debug/*.png
+/debug/verification.json
+/debug/product-verification.json
+/debug/shop-verification.json
