@@ -27,13 +27,8 @@ jobs:
 
       - name: Preparar el sitio
         run: |
-          mkdir -p _site/assets
-          cd landing-3d
-          cp -r index.html css src vendor ../_site/
-          cp -r assets/models ../_site/assets/
-          cp assets/poster-*.webp ../_site/assets/
-          touch ../_site/.nojekyll
-          du -sh ../_site
+          node landing-3d/scripts/build-pages.mjs _site
+          du -sh _site
 
       - uses: actions/configure-pages@v5
 
